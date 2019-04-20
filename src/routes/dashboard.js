@@ -28,7 +28,7 @@ const subscriptionsDBLib = SubscriptionsDBLibInit({
 });
 
 /* eslint-disable-next-line no-unused-vars */
-let test = async (event, context) => {
+const test = async (event, context) => {
   try {
     const data = await Subscription.findAll({
       include: [
@@ -201,7 +201,7 @@ const getUserSubscriptions = withHook(getUserSubscriptionsHandler);
 const getUsersList = withHook(getUsersListHandler);
 const getSubscriptionsList = withHook(getSubscriptionsListHandler);
 
-/*test = beforeHook(test).use(
+/* test = beforeHook(test).use(
   BaseMiddleware({
     handler: ({ getParams }) => {
       const [event] = getParams();
@@ -210,7 +210,7 @@ const getSubscriptionsList = withHook(getSubscriptionsListHandler);
       event.authToken = `eyJraWQiOiJGXC9WZ1ZKS1VQRGlKQ0lHUTdFWnhrUEwweU9TUEY4WHhrb0RBZVBoTmVocz0iLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiIxODk3ZjFhNS1jZWVhLTRkZTktYTE4Ni1kMmQyNDMzYmI3Y2MiLCJhdWQiOiIzbDM3c3JwMDQ0ZjdyMWduZ2UzOWJrYnNvayIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJldmVudF9pZCI6ImY0MjI2Mjc0LTYzNmQtMTFlOS1iMDljLTk1ZTZiNWI5ODY3NSIsInRva2VuX3VzZSI6ImlkIiwiYXV0aF90aW1lIjoxNTU1NzY1OTUxLCJpc3MiOiJodHRwczpcL1wvY29nbml0by1pZHAuYXAtc291dGhlYXN0LTIuYW1hem9uYXdzLmNvbVwvYXAtc291dGhlYXN0LTJfM2htOExxREJYIiwiY29nbml0bzp1c2VybmFtZSI6IjE4OTdmMWE1LWNlZWEtNGRlOS1hMTg2LWQyZDI0MzNiYjdjYyIsImV4cCI6MTU1NTc2OTU1MSwiaWF0IjoxNTU1NzY1OTUxLCJlbWFpbCI6InRhbnR5cm9odW50ZXJAZ21haWwuY29tIn0.MYaCHVzhPL37ef4u8TvpLCC_3ZCD6Ew-gawcMrB-q_Vn-d8nQEktyZi2NF462f5oK87diaSdCF-PFXL9mo1VlNS_hjvlS4-350HP7SyojYht9DqOsUdHzXEwBZ5TlNlY7Al-DC4tdwzvZFWEPwMj6HIqIcaK_K65jvUe1A20QX5Xx_4Ff5s6AE-zGJ-vk_1bDkJK7pbc1la9-ei9-26UtqLZsddpwkKBvIIhy3vbrdZBE0S_KEuoAOpMwo69g_rot0rnIEfOSoowTERq_sEbqRNcbhc-Ttq_7RhfzyCtF9P52pKUegOwk1K1HIeiwHBvatJKfy8D0tCggMAyd737DQ`;
     }
   })
-);*/
+); */
 
 router.get("/test", test);
 router.post("/migration", migration);
