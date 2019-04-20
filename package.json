@@ -1,0 +1,37 @@
+{
+  "name": "sls-test-tyro",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "NODE_ENV=local node local-run.js",
+    "start:webpack": "NODE_ENV=local webpack",
+    "deploy:env": "sls deploy -v --stage $NODE_ENV",
+    "deploy": "export NODE_ENV=dev && yarn deploy:env"
+  },
+  "private": true,
+  "devDependencies": {
+    "babel-core": "^6.26.3",
+    "babel-loader": "^8.0.5",
+    "babel-preset-env": "^1.7.0",
+    "babel-watch": "^7.0.0",
+    "eslint": "^5.16.0",
+    "eslint-config-airbnb-base": "^13.1.0",
+    "eslint-plugin-import": "^2.17.2",
+    "js-yaml": "^3.13.1",
+    "serverless-webpack": "^5.2.0",
+    "source-map-support": "^0.5.12",
+    "webpack": "^4.30.0",
+    "webpack-cli": "^3.3.0",
+    "webpack-node-externals": "^1.7.2"
+  },
+  "dependencies": {
+    "aws-sdk": "^2.441.0",
+    "aws-serverless-express": "^3.3.6",
+    "before-hook": "^0.3.0-alpha.0",
+    "cors": "^2.8.5",
+    "express": "^4.16.4",
+    "jwt-decode": "^2.2.0",
+    "pg": "^7.10.0",
+    "recurly-js": "^3.2.0",
+    "sequelize": "^5.7.0"
+  }
+}

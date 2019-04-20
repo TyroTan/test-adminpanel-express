@@ -1,0 +1,36 @@
+service: sls-test
+
+custom:
+  webpackIncludeModules: true
+
+# Check if these work for you / are up to date
+provider:
+  name: aws
+  runtime: nodejs8.10
+  # If you want to change to a different AWS profile
+  # from ~/.aws/credentials, you can do so here
+  profile: default
+  region: 'ap-northeast-1'
+  environment:
+    PG_HOST: ${file(./src/config/config.${self:provider.stage}.json):PG_HOST}
+    PG_DATABASE: ${file(./src/config/config.${self:provider.stage}.json):PG_DATABASE}
+    PG_USER: ${file(./src/config/config.${self:provider.stage}.json):PG_USER}
+    PG_PASSWORD: ${file(./src/config/config.${self:provider.stage}.json):PG_PASSWORD}
+    PG_PORT: ${file(./src/config/config.${self:provider.stage}.json):PG_PORT}
+
+plugins:
+  - serverless-webpack
+
+package:
+  individually: true
+
+functions:
+  app:
+    handler: handler.default
+    events:
+      - http:
+          path: /
+          method: ANY
+      - http:
+          path: /{proxy+}
+          method: ANY

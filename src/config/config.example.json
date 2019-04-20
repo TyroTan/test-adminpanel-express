@@ -1,0 +1,9 @@
+{
+    "PG_HOST": "",
+    "PG_DATABASE": "",
+    "PG_USER": "",
+    "PG_PASSWORD": "",
+    "PG_PORT": "",
+    "ENV": "dev",
+    "JWT_SECRET": "ADSL*@$&AA())"
+}
