@@ -27,10 +27,11 @@ const { UNSAFE_BUT_FAST_handler } = CognitoDecodeVerifyJWTInit({
   jwt_decode
 });
 
-const { getUserSubscriptions } = SubscriptionsDBLibInit({
+/* eslint-disable-next-line no-unused-vars */
+const subscriptionsDBLib = SubscriptionsDBLibInit({
   User,
-  Subscription,
-  UserSubscription
+  UserSubscription,
+  Subscription
 });
 
 /* eslint-disable-next-line no-unused-vars */
@@ -63,7 +64,7 @@ const getAccountHandler = async (event, context) => {
 /* eslint-disable-next-line no-unused-vars */
 const getSubscriptionsHandler = async (event, context) => {
   try {
-    const data = await getUserSubscriptions(event.user.sub);
+    const data = await subscriptionsDBLib.getUserSubscriptions(event.user.sub);
 
     return context.json(format_response(data));
   } catch (e) {
@@ -79,12 +80,6 @@ const subscribeHandler = async (event, context) => {
     let insertAction = () => {};
 
     body.account_code = event.user.sub;
-    /* eslint-disable-next-line no-unused-vars */
-    const subscriptionsDBLib = SubscriptionsDBLibInit({
-      User,
-      UserSubscription,
-      Subscription
-    });
 
     try {
       insertAction = await subscriptionsDBLib.subscribe({
@@ -103,8 +98,8 @@ const subscribeHandler = async (event, context) => {
       );
     }
 
-    // const promised = promisify(recurly.subscribe);
-    const result = {}; // await promised(body);
+    const promised = promisify(recurly.subscribe);
+    const result = await promised(body);
 
     if (result && result.subscription && result.subscription.uuid) {
       await insertAction();

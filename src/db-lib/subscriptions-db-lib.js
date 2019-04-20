@@ -76,7 +76,7 @@ export default ({ User, UserSubscription, Subscription }) => {
         throw Error('Invalid action. User already subscribed.');
       }
 
-      return () => UserSubscription.create(
+      return async () => UserSubscription.create(
         {
           user_data: JSON.stringify(userData),
           user_id: userData.user_id,
