@@ -1,13 +1,13 @@
 export default ({ User, Session }) => {
-  if (typeof User === "undefined" || typeof Session === "undefined") {
+  if (typeof User === 'undefined' || typeof Session === 'undefined') {
     throw ReferenceError(
-      `Model cant be undefined. type is ${typeof User} type is ${typeof Session}`
+      `Model cant be undefined. type is ${typeof User} type is ${typeof Session}`,
     );
   }
 
   const logSessionUponLogin = async (token, claims) => {
     const user = await User.findOne({
-      user_id_cognito_sub: claims.sub
+      where: { user_id_cognito_sub: claims.sub },
     });
 
     if (user && user.user_id) {
@@ -34,7 +34,7 @@ export default ({ User, Session }) => {
 
       return Session.update(
         { data: token },
-        { where: { session_id: user.session_id } }
+        { where: { session_id: user.session_id } },
       );
     }
 
@@ -45,21 +45,21 @@ export default ({ User, Session }) => {
         user_id_cognito_sub: claims.sub,
         session: {
           data: token,
-          user_data: JSON.stringify(claims)
-        }
+          user_data: JSON.stringify(claims),
+        },
       },
       {
         include: [
           {
             model: Session,
-            as: "session"
-          }
-        ]
-      }
+            as: 'session',
+          },
+        ],
+      },
     );
   };
 
   return {
-    logSessionUponLogin
+    logSessionUponLogin,
   };
 };

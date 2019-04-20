@@ -1,7 +1,8 @@
-const { BaseMiddleware } = require("before-hook");
-import AuthMiddleware from "./AuthMiddleware";
+import { BaseMiddleware } from 'before-hook';
+import AuthMiddleware from './AuthMiddleware';
+
 
 export {
   AuthMiddleware,
-  BaseMiddleware
+  BaseMiddleware,
 };

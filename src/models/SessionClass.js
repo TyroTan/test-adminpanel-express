@@ -3,7 +3,7 @@ export default ({ sequelize, Sequelize }) => {
     throw Error(
       `sequelize Sequelize are required.
         typeof ${sequelize},
-        typeof ${Sequelize}`
+        typeof ${Sequelize}`,
     );
   }
 
@@ -17,22 +17,22 @@ export default ({ sequelize, Sequelize }) => {
         type: Sequelize.INTEGER,
         allowNull: false,
         primaryKey: true,
-        autoIncrement: true
+        autoIncrement: true,
       },
       data: {
         type: Sequelize.TEXT,
-        allowNull: false
+        allowNull: false,
       },
       user_data: {
         type: Sequelize.TEXT,
-        allowNull: false
-      }
+        allowNull: false,
+      },
     },
     {
       modelName: 'Session', // if you don't do this, webpack transpiles relations
       timestamps: true,
-      sequelize
-    }
+      sequelize,
+    },
   );
 
   return Session;

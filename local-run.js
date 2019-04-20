@@ -2,9 +2,9 @@
 /* eslint-disable import/no-commonjs */
 /* eslint-disable import/no-extraneous-dependencies */
 const webpack = require('webpack');
-const config = require('./webpack.config');
 const { join } = require('path');
 const { spawn } = require('child_process');
+const config = require('./webpack.config');
 
 config.entry = './local-serve.js';
 config.devtool = 'source-map';

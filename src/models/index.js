@@ -1,11 +1,11 @@
-const {
+import {
   Session,
   Subscription,
   User,
   UserSubscription,
   sequelize,
-  Sequelize
-} = require("./sequelize-init-models");
+  Sequelize,
+} from './sequelize-init-models';
 
 export {
   Session,
@@ -13,5 +13,5 @@ export {
   User,
   UserSubscription,
   sequelize,
-  Sequelize
+  Sequelize,
 };

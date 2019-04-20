@@ -1,37 +1,33 @@
-import { SubscriptionsDBLibInit } from "../db-lib";
-import CognitoDecodeVerifyJWTInit from "../utils/cognito-decode-verify-jwt";
+/* eslint-disable camelcase */
+import { promisify } from 'util';
+import { CreateInstance } from 'before-hook';
+import express from 'express';
 
-const { promisify } = require("util");
-const { CreateInstance } = require("before-hook");
-const express = require("express");
+import jwt_decode from 'jwt-decode';
+import CognitoDecodeVerifyJWTInit from '../utils/cognito-decode-verify-jwt';
+import { SubscriptionsDBLibInit } from '../db-lib';
+
+// const { Op } = Sequelize;
+/* eslint-disable-next-line no-unused-vars */
+import { AuthMiddleware } from '../custom-middleware';
+
+import {
+  /* eslint-disable-next-line no-unused-vars */
+  Session, Subscription, User, UserSubscription,
+} from '../models';
+import { format_response } from '../utils/lambda';
+import { recurly } from '../services';
 
 const router = express.Router();
-// const { getUserAgencies } = require('../../dataHandlers/agency');
-
-/* eslint-disable camelcase, import/prefer-default-export */
-
-/* eslint-disable-next-line no-unused-vars */
-// import { resolve } from './lib/resolver';
-
-/* eslint-disable-next-line no-unused-vars */
-// const { Op } = Sequelize;
-const jwt_decode = require("jwt-decode");
-const { AuthMiddleware } = require("../custom-middleware");
-
-/* eslint-disable-next-line no-unused-vars */
-const { Session, Subscription, User, UserSubscription } = require("../models");
-
 
 const { UNSAFE_BUT_FAST_handler } = CognitoDecodeVerifyJWTInit({
-  jwt_decode
+  jwt_decode,
 });
-const { format_response } = require("../utils/lambda");
-const { recurly } = require("../services");
 
 const { getUserSubscriptions } = SubscriptionsDBLibInit({
   User,
   Subscription,
-  UserSubscription
+  UserSubscription,
 });
 
 /* eslint-disable-next-line no-unused-vars */
@@ -84,23 +80,23 @@ const subscribeHandler = async (event, context) => {
     const subscriptionsDBLib = SubscriptionsDBLibInit({
       User,
       UserSubscription,
-      Subscription
+      Subscription,
     });
 
     try {
       insertAction = await subscriptionsDBLib.subscribe({
         userSub: event.user.sub,
-        planCode: body.plan_code
+        planCode: body.plan_code,
       });
     } catch (e) {
       return context.json(
         format_response({
           statusCode: 422,
-          headers: { "Access-Control-Allow-Origin": "*" },
+          headers: { 'Access-Control-Allow-Origin': '*' },
           body: JSON.stringify({
-            e: e && e.message
-          })
-        })
+            e: e && e.message,
+          }),
+        }),
       );
     }
 
@@ -112,13 +108,13 @@ const subscribeHandler = async (event, context) => {
       return context.json(
         format_response({
           success: true,
-          uuid: result.subscription.uuid
-        })
+          uuid: result.subscription.uuid,
+        }),
       );
     }
 
     /** DB LOG - why the txn failed * */
-    return context.json(format_response({ statusCode: 500, msg: "failure" }));
+    return context.json(format_response({ statusCode: 500, msg: 'failure' }));
   } catch (e) {
     return context.json(format_response(e));
   }
@@ -143,30 +139,29 @@ const beforeHook = CreateInstance({
       onCatch: (...args) => {
         const { arg = {}, getParams } = args[1];
         const res = Object.assign({}, arg, {
-          headers: { "Access-Control-Allow-Origin": "*" }
+          headers: { 'Access-Control-Allow-Origin': '*' },
         });
 
         if (
-          getParams &&
-          getParams()[1] &&
-          typeof getParams()[1].json === "function"
+          getParams
+          && getParams()[1]
+          && typeof getParams()[1].json === 'function'
         ) {
           return getParams()[1].json(arg);
         }
 
         return res;
-      }
-    }
-  }
+      },
+    },
+  },
 });
 
-const withHook = handler =>
-  beforeHook(promisify(handler)).use(
-    AuthMiddleware({
-      promisify,
-      cognitoJWTDecodeHandler: UNSAFE_BUT_FAST_handler
-    })
-  );
+const withHook = handler => beforeHook(promisify(handler)).use(
+  AuthMiddleware({
+    promisify,
+    cognitoJWTDecodeHandler: UNSAFE_BUT_FAST_handler,
+  }),
+);
 
 const getlist = withHook(getListHandler);
 const getAccount = withHook(getAccountHandler);
@@ -174,10 +169,10 @@ const subscribe = withHook(subscribeHandler);
 const getPlans = withHook(getPlansHandler);
 const getSubscriptions = withHook(getSubscriptionsHandler);
 
-router.get("/getAccount", getAccount);
-router.get("/getList", getlist);
-router.post("/subscribe", subscribe);
-router.get("/getPlans", getPlans);
-router.get("/getSubscriptions", getSubscriptions);
+router.get('/getAccount', getAccount);
+router.get('/getList', getlist);
+router.post('/subscribe', subscribe);
+router.get('/getPlans', getPlans);
+router.get('/getSubscriptions', getSubscriptions);
 
 export default router;

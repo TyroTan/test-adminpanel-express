@@ -1,3 +1,4 @@
-const seedSubscription = require("./seedSubscription");
+import seedSubscription from './seedSubscription';
 
 export { seedSubscription };
+export default seedSubscription;

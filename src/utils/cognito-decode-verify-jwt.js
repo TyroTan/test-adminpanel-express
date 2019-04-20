@@ -31,10 +31,9 @@ const CognitoDecodeVerifyJWTInit = ({ jwt_decode }) => {
   return {
     UNSAFE_BUT_FAST_handler: (event, context, callback) => {
       try {
-        const token =
-          event.headers && event.headers.Authorization
-            ? event.headers.Authorization
-            : '.';
+        const token = event.headers && event.headers.Authorization
+          ? event.headers.Authorization
+          : '.';
         const claims = jwt_decode(token);
         if (claims && claims.exp && claims.aud) {
           const current_ts = Math.floor(new Date() / 1000);
@@ -50,10 +49,9 @@ const CognitoDecodeVerifyJWTInit = ({ jwt_decode }) => {
         }
         return callback('invalid c');
       } catch (e) {
-        const msg =
-          e && e.message
-            ? `${e.message}`
-            : e;
+        const msg = e && e.message
+          ? `${e.message}`
+          : e;
         return callback(msg, msg);
       }
     },

@@ -4,7 +4,9 @@
   "scripts": {
     "start": "NODE_ENV=local node local-run.js",
     "start:webpack": "NODE_ENV=local webpack",
+    "lint": "eslint *.js --fix && eslint src/**/*.js --fix",
     "deploy:env": "sls deploy -v --stage $NODE_ENV",
+    "predeploy": "npm run lint",
     "deploy": "export NODE_ENV=dev && yarn deploy:env"
   },
   "private": true,

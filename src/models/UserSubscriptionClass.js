@@ -3,7 +3,7 @@ export default ({ sequelize, Sequelize }) => {
     throw Error(
       `sequelize Sequelize are required.
           typeof ${sequelize},
-          typeof ${Sequelize}`
+          typeof ${Sequelize}`,
     );
   }
   const { Model } = Sequelize;
@@ -14,14 +14,14 @@ export default ({ sequelize, Sequelize }) => {
     {
       user_data: {
         type: Sequelize.TEXT,
-        allowNull: false
-      }
+        allowNull: false,
+      },
     },
     {
       modelName: 'UserSubscription', // if you don't do this, webpack transpiles relations
       timestamps: true,
-      sequelize
-    }
+      sequelize,
+    },
   );
 
   return UserSubscription;

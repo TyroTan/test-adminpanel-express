@@ -3,7 +3,7 @@ export default ({ sequelize, Sequelize }) => {
     throw Error(
       `sequelize Sequelize are required.
         typeof ${sequelize},
-        typeof ${Sequelize}`
+        typeof ${Sequelize}`,
     );
   }
   const { Model } = Sequelize;
@@ -16,22 +16,22 @@ export default ({ sequelize, Sequelize }) => {
         allowNull: false,
         type: Sequelize.INTEGER,
         primaryKey: true,
-        autoIncrement: true
+        autoIncrement: true,
       },
       subscription_type: {
         type: Sequelize.STRING(255),
-        allowNull: false
+        allowNull: false,
       },
       data: {
         type: Sequelize.TEXT,
-        allowNull: false
-      }
+        allowNull: false,
+      },
     },
     {
       modelName: 'Subscription', // if you don't do this, webpack transpiles relations
       timestamps: true,
-      sequelize
-    }
+      sequelize,
+    },
   );
 
   return Subscription;
