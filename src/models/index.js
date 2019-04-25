@@ -1,4 +1,5 @@
 import {
+  Event,
   Session,
   Subscription,
   User,
@@ -8,6 +9,7 @@ import {
 } from './sequelize-init-models';
 
 export {
+  Event,
   Session,
   Subscription,
   User,

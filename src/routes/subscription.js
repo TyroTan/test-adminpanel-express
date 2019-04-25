@@ -160,7 +160,7 @@ const getPlansHandler = async (event, context) => {
 const beforeHook = CreateInstance({
   configure: {
     augmentMethods: {
-      onCatch: (...args) => {
+      onReturnObject: (...args) => {
         const { arg = {}, getParams } = args[1];
         const res = Object.assign({}, arg, {
           headers: { "Access-Control-Allow-Origin": "*" }

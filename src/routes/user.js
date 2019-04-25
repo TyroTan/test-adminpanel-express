@@ -51,7 +51,7 @@ const logSessionUponLoginHandler = async (event, context) => {
 const beforeHook = CreateInstance({
   configure: {
     augmentMethods: {
-      onCatch: (...args) => {
+      onReturnObject: (...args) => {
         const { arg, getParams = () => {} } = args[1];
         /* eslint-disable-next-line no-unused-vars */
         const [event, context = {}] = getParams();

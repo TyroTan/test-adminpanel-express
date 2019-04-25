@@ -1,6 +1,6 @@
 import express from 'express';
 import cors from 'cors';
-import { dashboard, subscription, users } from './src/routes';
+import { dashboard, subscription, user } from './src/routes';
 
 
 const app = express();
@@ -8,7 +8,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-app.use('/users', users);
+app.use('/user', user);
 app.use('/dashboard', dashboard);
 app.use('/subscription', subscription);
 
@@ -16,7 +16,7 @@ app.get('/', (req, res) => res.send('Hello world ttt !'));
 
 /* eslint-disable-next-line no-unused-vars */
 app.use((err, req, res, next) => {
-  console.log('At error handler middleware');
+  console.log('error at handler middleware');
   console.log(err);
   if (err.name === 'UnauthorizedError') {
     return res.status(401).send(err.message);

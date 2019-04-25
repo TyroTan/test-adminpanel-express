@@ -6,12 +6,18 @@ import jwt_decode from "jwt-decode";
 import { SubscriptionsDBLibInit } from "../db-lib";
 import CognitoDecodeVerifyJWTInit from "../utils/cognito-decode-verify-jwt";
 
-/* eslint-disable-next-line no-unused-vars */
 // const { Op } = Sequelize;
+/* eslint-disable-next-line no-unused-vars */
 import { AuthMiddleware, BaseMiddleware } from "../custom-middleware";
 
 /* eslint-disable-next-line no-unused-vars */
-import { Session, Subscription, User, UserSubscription } from "../models";
+import {
+  Event,
+  Session,
+  Subscription,
+  User,
+  UserSubscription
+} from "../models";
 import { seedSubscription } from "../migrations";
 import { format_response } from "../utils/lambda";
 
@@ -113,6 +119,11 @@ const migrationHandler = async (event, context) => {
     } else if (typeof body.syncOne === "string") {
       const force = body.syncForce === true;
       switch (body.syncOne) {
+        case "Event":
+          res[`synced ${body.syncOne}`] = await Event.sync({
+            force
+          });
+          break;
         case "UserSubscription":
           res[`synced ${body.syncOne}`] = await UserSubscription.sync({
             force
@@ -150,7 +161,7 @@ const migrationHandler = async (event, context) => {
 const beforeHook = CreateInstance({
   configure: {
     augmentMethods: {
-      onCatch: (...args) => {
+      onReturnObject: (...args) => {
         const { arg = {}, getParams } = args[1];
 
         /* eslint-disable-next-line no-unused-vars */
@@ -179,24 +190,22 @@ const withHook = handler =>
 
 const migration = withHook(migrationHandler).use(
   BaseMiddleware({
-    handler: ({ getParams, getHelpers }) => {
-      const { returnAndSendResponse } = getHelpers();
+    handler: ({ getParams, reply }) => {
       const [event] = getParams();
       if (
         !event.user ||
         event.user.sub !== "1897f1a5-ceea-4de9-a186-d2d2433bb7cc"
       ) {
-        return returnAndSendResponse({
+        reply({
           statusCode: 403,
           body: "Invalid Session",
           headers: { "Access-Control-Allow-Origin": "*" }
         });
       }
-
-      return {};
     }
   })
 );
+
 const getUserSubscriptions = withHook(getUserSubscriptionsHandler);
 const getUsersList = withHook(getUsersListHandler);
 const getSubscriptionsList = withHook(getSubscriptionsListHandler);

@@ -1,6 +1,6 @@
 // auth routes
 import dashboard from './dashboard';
 import subscription from './subscription';
-import users from './users';
+import user from './user';
 
-export { dashboard, subscription, users };
+export { dashboard, subscription, user };
