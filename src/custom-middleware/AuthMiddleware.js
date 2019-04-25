@@ -58,6 +58,8 @@ export default ({ promisify, cognitoJWTDecodeHandler } = {}) => {
 
       event.user = claims;
       event.authToken = newEventHeaders.Authorization;
+
+      return {}
     }
   });
 };

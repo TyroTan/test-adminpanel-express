@@ -60,6 +60,24 @@ const test = async (event, context) => {
 };
 
 /* eslint-disable-next-line no-unused-vars */
+const getEventsListHandler = async (event, context) => {
+  try {
+    /* eslint-disable-next-line  no-unused-vars */
+    const list = await Event.findAll({
+      // attributes: ["event_id", "createdAt"],
+      include: [{
+        model: User,
+        as: 'user'
+      }]
+    });
+
+    return context.json(format_response(list));
+  } catch (e) {
+    return context.json(format_response(e));
+  }
+};
+
+/* eslint-disable-next-line no-unused-vars */
 const getUserSubscriptionsHandler = async (event, context) => {
   try {
     const data = await subscriptionsDBLib.getUserSubscriptions({
@@ -208,6 +226,7 @@ const migration = withHook(migrationHandler).use(
 
 const getUserSubscriptions = withHook(getUserSubscriptionsHandler);
 const getUsersList = withHook(getUsersListHandler);
+const getEventsList = withHook(getEventsListHandler);
 const getSubscriptionsList = withHook(getSubscriptionsListHandler);
 
 /* test = beforeHook(test).use(
@@ -222,9 +241,10 @@ const getSubscriptionsList = withHook(getSubscriptionsListHandler);
 ); */
 
 router.get("/test", test);
-router.post("/migration", migration);
+router.get("/getEvents", getEventsList);
 router.get("/getUserSubscriptions", getUserSubscriptions);
 router.get("/getUsers", getUsersList);
 router.get("/getSubscriptions", getSubscriptionsList);
+router.post("/migration", migration);
 
 export default router;
