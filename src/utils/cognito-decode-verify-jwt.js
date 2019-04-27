@@ -12,7 +12,7 @@
 
 /* eslint-disable camelcase */
 
-import { cognito } from '../config/aws.config';
+import { cognito } from "../config/aws.config";
 
 // const https = require('https');
 // const jose = require('node-jose');
@@ -25,36 +25,37 @@ const app_client_id = cognito.APP_CLIENT_ID;
 // const jwt_decode = require('jwt-decode');
 const CognitoDecodeVerifyJWTInit = ({ jwt_decode }) => {
   if (!jwt_decode) {
-    throw ReferenceError('package jwt_decode is required.');
+    throw ReferenceError("package jwt_decode is required.");
   }
 
   return {
     UNSAFE_BUT_FAST_handler: (event, context, callback) => {
       try {
-        const token = event.headers && event.headers.Authorization
-          ? event.headers.Authorization
-          : '.';
+        const token =
+          event.headers && event.headers.Authorization
+            ? event.headers.Authorization
+            : ".";
+
         const claims = jwt_decode(token);
+
         if (claims && claims.exp && claims.aud) {
           const current_ts = Math.floor(new Date() / 1000);
           if (current_ts > claims.exp) {
-            return callback('invalid a');
+            return callback(Error("invalid a"));
           }
           // and the Audience (use claims.client_id if verifying an access token)
           if (claims.aud !== app_client_id) {
-            return callback('invalid b');
+            return callback(Error("invalid b"));
           }
 
           return callback(null, claims);
         }
-        return callback('invalid c');
+        return callback(Error("invalid c"));
       } catch (e) {
-        const msg = e && e.message
-          ? `${e.message}`
-          : e;
+        const msg = e && e.message ? `${e.message}` : e;
         return callback(msg, msg);
       }
-    },
+    }
   };
 };
 

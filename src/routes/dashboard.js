@@ -8,7 +8,11 @@ import CognitoDecodeVerifyJWTInit from "../utils/cognito-decode-verify-jwt";
 
 // const { Op } = Sequelize;
 /* eslint-disable-next-line no-unused-vars */
-import { AuthMiddleware, BaseMiddleware } from "../custom-middleware";
+import {
+  AuthMiddleware,
+  BaseMiddleware,
+  ValidateAndGetUserInfo
+} from "../custom-middleware";
 
 /* eslint-disable-next-line no-unused-vars */
 import {
@@ -65,11 +69,41 @@ const getEventsListHandler = async (event, context) => {
     /* eslint-disable-next-line  no-unused-vars */
     const list = await Event.findAll({
       // attributes: ["event_id", "createdAt"],
-      include: [{
-        model: User,
-        as: 'user'
-      }]
+      include: [
+        {
+          model: User,
+          as: "user"
+        }
+      ]
     });
+
+    return context.json(format_response(list));
+  } catch (e) {
+    return context.json(format_response(e));
+  }
+};
+
+/* eslint-disable-next-line no-unused-vars */
+const createEventHandler = async (event, context) => {
+  try {
+    const { user_id } = event.user;
+
+    /* eslint-disable-next-line  no-unused-vars */
+    const list = await Event.create(
+      {
+        data: '123,',
+        status: 'test',
+        user_id,
+      },
+      {
+        include: [
+          {
+            model: User,
+            as: "user"
+          }
+        ]
+      }
+    );
 
     return context.json(format_response(list));
   } catch (e) {
@@ -228,6 +262,7 @@ const getUserSubscriptions = withHook(getUserSubscriptionsHandler);
 const getUsersList = withHook(getUsersListHandler);
 const getEventsList = withHook(getEventsListHandler);
 const getSubscriptionsList = withHook(getSubscriptionsListHandler);
+const createEvent = withHook(createEventHandler).use(ValidateAndGetUserInfo());
 
 /* test = beforeHook(test).use(
   BaseMiddleware({
@@ -245,6 +280,8 @@ router.get("/getEvents", getEventsList);
 router.get("/getUserSubscriptions", getUserSubscriptions);
 router.get("/getUsers", getUsersList);
 router.get("/getSubscriptions", getSubscriptionsList);
+
+router.post("/events", createEvent);
 router.post("/migration", migration);
 
 export default router;

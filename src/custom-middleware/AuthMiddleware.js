@@ -16,9 +16,9 @@ export default ({ promisify, cognitoJWTDecodeHandler } = {}) => {
     configure: {
       augmentMethods: {
         onCatch: (...args) => {
-          const { prevRawMethod } = args[1];
+          const { getParams } = args[1];
 
-          return prevRawMethod({
+          return getParams()[1].json({
             statusCode: 403,
             body: "Invalid Session",
             headers: { "Access-Control-Allow-Origin": "*" }
@@ -43,6 +43,7 @@ export default ({ promisify, cognitoJWTDecodeHandler } = {}) => {
       if (!isAsyncFunction(promised)) {
         promised = promisify(promised);
       }
+
       const claims = await promised(
         Object.assign({}, event, { headers: newEventHeaders }),
         context
@@ -59,7 +60,7 @@ export default ({ promisify, cognitoJWTDecodeHandler } = {}) => {
       event.user = claims;
       event.authToken = newEventHeaders.Authorization;
 
-      return {}
+      return {};
     }
   });
 };

@@ -38,7 +38,8 @@ export default ({ sequelize, Sequelize }, { User }) => {
   Event.belongsTo(User, {
     as: 'user',
     foreignKey: {
-      name: 'user_id'
+      name: 'user_id',
+      required: true
     },
   });
 
