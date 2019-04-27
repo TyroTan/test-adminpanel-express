@@ -71,18 +71,21 @@ const UserSubscription = UserSubscriptionClass({
 Subscription.belongsToMany(User, {
   through: UserSubscription,
   as: "user",
-  foreignKey: "subscription_id"
+  foreignKey: "subscription_id",
+  allowNull: false
 });
 User.belongsToMany(Subscription, {
   through: UserSubscription,
   as: "user_subscription",
-  foreignKey: "user_id"
+  foreignKey: "user_id",
+  allowNull: false
 });
 // UserSubscription.belongsTo(models.Role, { as: "role", foreignKey: "roleId" });
 UserSubscription.belongsTo(User, { as: "user", foreignKey: "user_id" });
 UserSubscription.belongsTo(Subscription, {
   as: "subscription",
-  foreignKey: "subscription_id"
+  foreignKey: "subscription_id",
+  allowNull: false
 });
 // through is required!
 

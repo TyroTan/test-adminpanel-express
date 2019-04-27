@@ -1,5 +1,6 @@
 /* eslint-disable camelcase */
 import { promisify } from "util";
+import moment from 'moment';
 import { CreateInstance } from "before-hook";
 import express from "express";
 import jwt_decode from "jwt-decode";
@@ -87,13 +88,18 @@ const getEventsListHandler = async (event, context) => {
 const createEventHandler = async (event, context) => {
   try {
     const { user_id } = event.user;
+    const { body } = event;
 
     /* eslint-disable-next-line  no-unused-vars */
     const list = await Event.create(
       {
-        data: '123,',
-        status: 'test',
-        user_id,
+        data: "123,",
+        status: "test",
+        url: body.url,
+        name: body.name,
+        from: moment(body.date[0]).utc(),
+        to: moment(body.date[1]).utc(),
+        user_id
       },
       {
         include: [
@@ -105,9 +111,9 @@ const createEventHandler = async (event, context) => {
       }
     );
 
-    return context.json(format_response(list));
+    return format_response(context, list);
   } catch (e) {
-    return context.json(format_response(e));
+    return format_response(context, e);
   }
 };
 
@@ -223,7 +229,9 @@ const beforeHook = CreateInstance({
         });
 
         if (context && context.json) {
-          return context.json(res);
+          return context
+            .status(!res.statusCode ? 500 : res.statusCode)
+            .json(res);
         }
 
         return res;

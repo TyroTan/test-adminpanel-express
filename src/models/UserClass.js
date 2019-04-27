@@ -50,6 +50,7 @@ export default ({ sequelize, Sequelize }, { Session }) => {
     foreignKey: {
       name: 'session_id',
       unique: true,
+      allowNull: false
     },
   });
 

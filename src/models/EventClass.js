@@ -23,6 +23,23 @@ export default ({ sequelize, Sequelize }, { User }) => {
         type: Sequelize.TEXT,
         allowNull: false
       },
+      name: {
+        type: Sequelize.STRING(255),
+        allowNull: false
+      },
+      from: {
+        type: Sequelize.DATE,
+        allowNull: false
+      },
+      to: {
+        type: Sequelize.DATE,
+        allowNull: false
+      },
+      url: {
+        type: Sequelize.STRING(255),
+        unique: true,
+        allowNull: false
+      },
       status: {
         type: Sequelize.STRING(255),
         allowNull: false
@@ -39,7 +56,7 @@ export default ({ sequelize, Sequelize }, { User }) => {
     as: 'user',
     foreignKey: {
       name: 'user_id',
-      required: true
+      allowNull: false
     },
   });
 
