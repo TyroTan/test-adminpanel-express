@@ -1,6 +1,6 @@
 /* eslint-disable camelcase */
 import { promisify } from "util";
-import moment from 'moment';
+import moment from "moment";
 import { CreateInstance } from "before-hook";
 import express from "express";
 import jwt_decode from "jwt-decode";
@@ -70,6 +70,31 @@ const getEventsListHandler = async (event, context) => {
     /* eslint-disable-next-line  no-unused-vars */
     const list = await Event.findAll({
       // attributes: ["event_id", "createdAt"],
+      include: [
+        {
+          model: User,
+          as: "user"
+        }
+      ]
+    });
+
+    return context.json(format_response(list));
+  } catch (e) {
+    return context.json(format_response(e));
+  }
+};
+
+/* eslint-disable-next-line no-unused-vars */
+const getEventHandler = async (event, context) => {
+  try {
+    const { params = {} } = event;
+    const { event_id } = params;
+    // const { event_id } = params;
+    /* eslint-disable-next-line  no-unused-vars */
+    const list = await Event.findOne({
+      where: {
+        event_id
+      },
       include: [
         {
           model: User,
@@ -269,6 +294,7 @@ const migration = withHook(migrationHandler).use(
 const getUserSubscriptions = withHook(getUserSubscriptionsHandler);
 const getUsersList = withHook(getUsersListHandler);
 const getEventsList = withHook(getEventsListHandler);
+const getEvent = withHook(getEventHandler);
 const getSubscriptionsList = withHook(getSubscriptionsListHandler);
 const createEvent = withHook(createEventHandler).use(ValidateAndGetUserInfo());
 
@@ -285,6 +311,8 @@ const createEvent = withHook(createEventHandler).use(ValidateAndGetUserInfo());
 
 router.get("/test", test);
 router.get("/getEvents", getEventsList);
+router.get("/event/:event_id", getEvent);
+
 router.get("/getUserSubscriptions", getUserSubscriptions);
 router.get("/getUsers", getUsersList);
 router.get("/getSubscriptions", getSubscriptionsList);
