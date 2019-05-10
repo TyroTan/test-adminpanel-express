@@ -5,4 +5,5 @@ const hookEventUserQuestion = async ({ sequelize } = {}) => {
   await sequelize.query(query);
 };
 
+export default hookEventUserQuestion;
 export { hookEventUserQuestion };
