@@ -1,5 +1,6 @@
 import {
   Event,
+  EventUserQuestion,
   Session,
   Subscription,
   User,
@@ -10,6 +11,7 @@ import {
 
 export {
   Event,
+  EventUserQuestion,
   Session,
   Subscription,
   User,

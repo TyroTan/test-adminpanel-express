@@ -4,6 +4,7 @@ import pg from "pg";
 import Sequelize from "sequelize";
 
 import EventClass from "./EventClass";
+import EventUserQuestionClass from "./EventUserQuestionClass";
 import SessionClass from "./SessionClass";
 import SubscriptionClass from "./SubscriptionClass";
 import UserClass from "./UserClass";
@@ -64,6 +65,11 @@ const Event = EventClass(
   },
   { User }
 );
+const EventUserQuestion = EventUserQuestionClass(
+  {
+    sequelize, Sequelize
+  }
+)
 const UserSubscription = UserSubscriptionClass({
   sequelize,
   Sequelize
@@ -87,10 +93,21 @@ UserSubscription.belongsTo(Subscription, {
   foreignKey: "subscription_id",
   allowNull: false
 });
-// through is required!
+
+EventUserQuestion.belongsTo(Event, {
+  as: "event",
+  foreignKey: "event_id",
+  allowNull: false
+});
+EventUserQuestion.belongsTo(User, {
+  as: "user",
+  foreignKey: "user_id",
+  allowNull: false
+});
 
 export {
   Event,
+  EventUserQuestion,
   Session,
   Subscription,
   User,

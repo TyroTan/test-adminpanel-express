@@ -1,6 +1,6 @@
 import express from 'express';
 import cors from 'cors';
-import { dashboard, subscription, user } from './src/routes';
+import { dashboard, event, subscription, user } from './src/routes';
 
 
 const app = express();
@@ -9,6 +9,7 @@ app.use(cors());
 app.use(express.json());
 
 app.use('/user', user);
+app.use('/event', event);
 app.use('/dashboard', dashboard);
 app.use('/subscription', subscription);
 
