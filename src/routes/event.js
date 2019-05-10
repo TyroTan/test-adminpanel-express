@@ -8,8 +8,11 @@ import jwt_decode from "jwt-decode";
 import { AuthMiddleware, ValidateAndGetUserInfo } from "../custom-middleware";
 import CognitoDecodeVerifyJWTInit from "../utils/cognito-decode-verify-jwt";
 
+/* eslint-disable-next-line no-unused-vars */
 import { Event, EventUserQuestion, sequelize } from "../models";
 import { format_response } from "../utils/lambda";
+
+/* eslint-disable-next-line no-unused-vars */
 import { hookEventUserQuestion } from "../migrations/hook";
 
 const router = express.Router();
