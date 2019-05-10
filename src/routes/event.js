@@ -24,17 +24,20 @@ let fetchEventInfoLive = async (event, context) => {
     const { event_id } = params;
 
     /* eslint-disable-next-line  no-unused-vars */
-    const list = await EventUserQuestion.findAll({
+    await Event.sync();
+    const list = await Event.findAll({
       where: {
         event_id
       },
       include: [
         {
-          model: Event,
-          as: "event"
+          model: EventUserQuestion,
+          as: "questions"
         }
       ]
     });
+
+    console.log("tojsoned??", list);
 
     return context.json(format_response(list));
   } catch (e) {

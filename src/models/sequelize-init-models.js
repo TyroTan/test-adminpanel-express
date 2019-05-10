@@ -65,15 +65,20 @@ const Event = EventClass(
   },
   { User }
 );
-const EventUserQuestion = EventUserQuestionClass(
-  {
-    sequelize, Sequelize
-  }
-)
+const EventUserQuestion = EventUserQuestionClass({
+  sequelize,
+  Sequelize
+});
 const UserSubscription = UserSubscriptionClass({
   sequelize,
   Sequelize
 });
+
+Event.hasMany(EventUserQuestion, {
+  as: "questions",
+  foreignKey: "event_id"
+});
+
 Subscription.belongsToMany(User, {
   through: UserSubscription,
   as: "user",
