@@ -101,13 +101,17 @@ UserSubscription.belongsTo(Subscription, {
 
 EventUserQuestion.belongsTo(Event, {
   as: "event",
-  foreignKey: "event_id",
-  allowNull: false
+  foreignKey: {
+    name: "event_id",
+    allowNull: false
+  }
 });
 EventUserQuestion.belongsTo(User, {
   as: "user",
-  foreignKey: "user_id",
-  allowNull: false
+  foreignKey: {
+    name: "user_id",
+    allowNull: false
+  }
 });
 
 export {

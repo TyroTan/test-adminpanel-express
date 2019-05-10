@@ -8,8 +8,9 @@ import jwt_decode from "jwt-decode";
 import { AuthMiddleware, ValidateAndGetUserInfo } from "../custom-middleware";
 import CognitoDecodeVerifyJWTInit from "../utils/cognito-decode-verify-jwt";
 
-import { Event, EventUserQuestion } from "../models";
+import { Event, EventUserQuestion, sequelize } from "../models";
 import { format_response } from "../utils/lambda";
+import { hookEventUserQuestion } from "../migrations/hook";
 
 const router = express.Router();
 
@@ -24,7 +25,7 @@ let fetchEventInfoLive = async (event, context) => {
     const { event_id } = params;
 
     /* eslint-disable-next-line  no-unused-vars */
-    await Event.sync();
+
     const list = await Event.findAll({
       where: {
         event_id
@@ -37,8 +38,6 @@ let fetchEventInfoLive = async (event, context) => {
       ]
     });
 
-    console.log("tojsoned??", list);
-
     return context.json(format_response(list));
   } catch (e) {
     return context.json(422, format_response(e));
@@ -49,7 +48,10 @@ let createEventQuestion = async (event, context) => {
   try {
     const { event_id } = event.params;
 
+    // TODO: comment/remove me
     // await EventUserQuestion.sync({ force: true });
+    // await hookEventUserQuestion({ sequelize });
+
     await EventUserQuestion.create({
       user_id: event.user.user_id,
       event_id,
@@ -99,9 +101,7 @@ const withHook = (...handler) =>
   createEventQuestion,
   fetchEventInfoLive
 ]);
-createEventQuestion = withHook(createEventQuestion).use(
-  ValidateAndGetUserInfo()
-);
+createEventQuestion = createEventQuestion.use(ValidateAndGetUserInfo());
 
 router.post("/:event_id/question", createEventQuestion);
 router.get("/:event_id", fetchEventInfoLive);

@@ -23,7 +23,7 @@ export default () => {
         where: { user_id_cognito_sub: event.user.sub }
       });
 
-      if (!user) {
+      if (!user || !user.user_id) {
         reply({
           statusCode: 418,
           body: "Unexpected behavior.",
