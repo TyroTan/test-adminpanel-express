@@ -4,6 +4,7 @@ import moment from "moment";
 import { CreateInstance } from "before-hook";
 import express from "express";
 import jwt_decode from "jwt-decode";
+import Joi from "joi";
 import { SubscriptionsDBLibInit } from "../db-lib";
 import CognitoDecodeVerifyJWTInit from "../utils/cognito-decode-verify-jwt";
 
@@ -139,6 +140,58 @@ const createEventHandler = async (event, context) => {
     return format_response(context, list);
   } catch (e) {
     return format_response(context, e);
+  }
+};
+
+/* eslint-disable-next-line no-unused-vars */
+const patchEventHandler = async (event, context) => {
+  try {
+    const { event_id } = event.params;
+    const { user_id } = event.user;
+    const { body } = event;
+
+    const schema = Joi.object().keys({
+      url: Joi.string()
+        .min(3)
+        .max(99)
+        .required(),
+      name: Joi.string()
+        .min(3)
+        .max(99)
+        .required(),
+      date: Joi.array().items(Joi.string().isoDate())
+    });
+    
+    const v = Joi.validate(body, schema);
+
+    if (v.error) {
+      console.log("error", v);
+      throw Error(v && v.message);
+    }
+    
+    const found = await Event.findOne({ where: { url: body.url } });
+    if (found && event_id + "" !== found.event_id + "") {
+      throw Error(`link ${body.url} is not available`);
+    }
+
+    await Event.update(
+      {
+        url: body.url,
+        name: body.name,
+        from: moment(body.date[0]).utc(),
+        to: moment(body.date[1]).utc(),
+        user_id
+      },
+      {
+        where: {
+          event_id
+        }
+      }
+    );
+    
+    return context.json(format_response({ success: true }));
+  } catch (e) {
+    return context.json(422, format_response(e));
   }
 };
 
@@ -297,6 +350,7 @@ const getEventsList = withHook(getEventsListHandler);
 const getEvent = withHook(getEventHandler);
 const getSubscriptionsList = withHook(getSubscriptionsListHandler);
 const createEvent = withHook(createEventHandler).use(ValidateAndGetUserInfo());
+const patchEvent = withHook(patchEventHandler).use(ValidateAndGetUserInfo());
 
 /* test = beforeHook(test).use(
   BaseMiddleware({
@@ -318,6 +372,8 @@ router.get("/getUsers", getUsersList);
 router.get("/getSubscriptions", getSubscriptionsList);
 
 router.post("/events", createEvent);
+router.patch("/events/:event_id", patchEvent);
+
 router.post("/migration", migration);
 
 export default router;
