@@ -170,7 +170,7 @@ const patchEventHandler = async (event, context) => {
     }
     
     const found = await Event.findOne({ where: { url: body.url } });
-    if (found && event_id + "" !== found.event_id + "") {
+    if (found && parseInt(event_id, 10) !== parseInt(found.event_id, 10)) {
       throw Error(`link ${body.url} is not available`);
     }
 
