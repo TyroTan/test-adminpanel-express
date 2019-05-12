@@ -43,10 +43,28 @@ export default ({ sequelize, Sequelize }, { User }) => {
       status: {
         type: Sequelize.STRING(255),
         allowNull: false
+      },
+
+      // dynamic
+      dynamic_name: {
+        type: Sequelize.BOOLEAN,
+        defaultValue: false
+      },
+      dynamic_company_name: {
+        type: Sequelize.BOOLEAN,
+        defaultValue: false
+      },
+      dynamic_email: {
+        type: Sequelize.BOOLEAN,
+        defaultValue: false
+      },
+      dynamic_position: {
+        type: Sequelize.BOOLEAN,
+        defaultValue: false
       }
     },
     {
-      modelName: "Event", // if you don't do this, webpack transpiles relations
+      modelName: "Events", // if you don't do this, webpack transpiles relations
       timestamps: true,
       sequelize
     }

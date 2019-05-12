@@ -69,6 +69,7 @@ const test = async (event, context) => {
 const getEventsListHandler = async (event, context) => {
   try {
     /* eslint-disable-next-line  no-unused-vars */
+
     const list = await Event.findAll({
       // attributes: ["event_id", "createdAt"],
       include: [
@@ -92,6 +93,7 @@ const getEventHandler = async (event, context) => {
     const { event_id } = params;
     // const { event_id } = params;
     /* eslint-disable-next-line  no-unused-vars */
+
     const list = await Event.findOne({
       where: {
         event_id
@@ -116,6 +118,31 @@ const createEventHandler = async (event, context) => {
     const { user_id } = event.user;
     const { body } = event;
 
+    const schema = Joi.object().keys({
+      dynamicFields: Joi.object().pattern(/^/, Joi.boolean()),
+      url: Joi.string()
+        .min(3)
+        .max(99)
+        .required(),
+      name: Joi.string()
+        .min(3)
+        .max(99)
+        .required(),
+      date: Joi.array().items(Joi.string().isoDate())
+    });
+
+    const v = Joi.validate(body, schema);
+
+    if (v.error) {
+      console.log("error", v);
+      throw Error(v && v.message);
+    }
+    
+    const found = await Event.findOne({ where: { url: body.url } });
+    if (found) {
+      throw Error(`link ${body.url} is not available`);
+    }
+
     /* eslint-disable-next-line  no-unused-vars */
     const list = await Event.create(
       {
@@ -125,7 +152,8 @@ const createEventHandler = async (event, context) => {
         name: body.name,
         from: moment(body.date[0]).utc(),
         to: moment(body.date[1]).utc(),
-        user_id
+        user_id,
+        ...body.dynamicFields
       },
       {
         include: [
@@ -151,6 +179,7 @@ const patchEventHandler = async (event, context) => {
     const { body } = event;
 
     const schema = Joi.object().keys({
+      dynamicFields: Joi.object().pattern(/^/, Joi.boolean()),
       url: Joi.string()
         .min(3)
         .max(99)
@@ -161,14 +190,14 @@ const patchEventHandler = async (event, context) => {
         .required(),
       date: Joi.array().items(Joi.string().isoDate())
     });
-    
+
     const v = Joi.validate(body, schema);
 
     if (v.error) {
       console.log("error", v);
       throw Error(v && v.message);
     }
-    
+
     const found = await Event.findOne({ where: { url: body.url } });
     if (found && parseInt(event_id, 10) !== parseInt(found.event_id, 10)) {
       throw Error(`link ${body.url} is not available`);
@@ -180,7 +209,14 @@ const patchEventHandler = async (event, context) => {
         name: body.name,
         from: moment(body.date[0]).utc(),
         to: moment(body.date[1]).utc(),
-        user_id
+        user_id,
+        ...{
+          dynamic_name: false,
+          dynamic_company_name: false,
+          dynamic_email: false,
+          dynamic_position: false,
+          ...body.dynamicFields
+        }
       },
       {
         where: {
@@ -188,7 +224,7 @@ const patchEventHandler = async (event, context) => {
         }
       }
     );
-    
+
     return context.json(format_response({ success: true }));
   } catch (e) {
     return context.json(422, format_response(e));
