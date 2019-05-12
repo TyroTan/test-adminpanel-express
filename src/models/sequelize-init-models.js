@@ -26,6 +26,9 @@ const sequelize = new Sequelize(
     host: `${PG_HOST}`,
     port: `${PG_PORT}`,
     logging: false,
+    // logging: (rawQuery) => {
+    //   console.log("loggger23123", rawQuery)
+    // },
     define: {
       charset: "utf8",
       collate: "utf8_general_ci"

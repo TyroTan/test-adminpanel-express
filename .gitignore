@@ -65,4 +65,4 @@ typings/
 
 
 src/config/*
-!src/config/config.example.json
+!src/config/example*

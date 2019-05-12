@@ -33,6 +33,7 @@
     "before-hook": "^0.3.2-alpha.0",
     "cors": "^2.8.5",
     "express": "^4.16.4",
+    "firebase-admin": "^7.3.0",
     "jwt-decode": "^2.2.0",
     "moment": "^2.24.0",
     "pg": "^7.10.0",
