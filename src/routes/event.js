@@ -19,7 +19,7 @@ import { format_response } from "../utils/lambda";
 // import moment from "moment";
 
 /* eslint-disable-next-line no-unused-vars */
-import { hookEventUserQuestion } from "../migrations/hook";
+import { migrationHookEventUserQuestion } from "../migrations/hook";
 
 const router = express.Router();
 
@@ -36,14 +36,21 @@ firabseAdmin.initializeApp({
 let fetchEventInfoLive = async (event, context) => {
   try {
     const { params = {} } = event;
-    const { event_id } = params;
+    const { event_id_or_unique_link } = params;
+    const isLinkMode = event.query && event.query.isLinkMode === "true";
 
     /* eslint-disable-next-line  no-unused-vars */
 
+    const findCondition = isLinkMode
+      ? {
+          url: event_id_or_unique_link
+        }
+      : {
+          event_id: event_id_or_unique_link
+        };
+
     const list = await Event.findOne({
-      where: {
-        event_id
-      },
+      where: findCondition,
       include: [
         {
           model: EventUserQuestion,
@@ -67,15 +74,21 @@ let createEventQuestion = async (event, context) => {
 
     // TODO: comment/remove me
     // await EventUserQuestion.sync({ force: true });
-    // await hookEventUserQuestion({ sequelize });
+    // await migrationHookEventUserQuestion({ sequelize });
 
     const newQuestion = await EventUserQuestion.create({
       user_id: event.user.user_id,
       event_id,
-      question: event.body.question,
-      data: JSON.stringify(event.body)
+      data: JSON.stringify(event.body),
+      ...{
+        question: event.body.question,
+        dynamic_company_name: event.body.dynamic_company_name,
+        dynamic_email: event.body.dynamic_email,
+        dynamic_name: event.body.dynamic_name,
+        dynamic_position: event.body.dynamic_position
+      }
     });
-    
+
     const dbref = firabseAdmin.database().ref("messager_event_questions");
     dbref.once("value", function(snapshot) {
       const current = JSON.parse(snapshot.val());
@@ -85,7 +98,7 @@ let createEventQuestion = async (event, context) => {
           event_id: parseInt(event_id, 10),
           event_question_id: newQuestion.event_question_id
         });
-        
+
         dbref.set(JSON.stringify(current));
       }
     });
@@ -135,6 +148,6 @@ const withHook = (...handler) =>
 createEventQuestion = createEventQuestion.use(ValidateAndGetUserInfo());
 
 router.post("/:event_id/question", createEventQuestion);
-router.get("/:event_id", fetchEventInfoLive);
+router.get("/:event_id_or_unique_link", fetchEventInfoLive);
 
 export default router;

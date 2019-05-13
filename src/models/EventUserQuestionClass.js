@@ -23,6 +23,21 @@ export default ({ sequelize, Sequelize }) => {
         type: Sequelize.TEXT,
         allowNull: false
       },
+
+      // dynamic
+      dynamic_name: {
+        type: Sequelize.STRING(255)
+      },
+      dynamic_company_name: {
+        type: Sequelize.STRING(255)
+      },
+      dynamic_email: {
+        type: Sequelize.STRING(255)
+      },
+      dynamic_position: {
+        type: Sequelize.STRING(255)
+      },
+
       data: {
         type: Sequelize.TEXT,
         allowNull: false
