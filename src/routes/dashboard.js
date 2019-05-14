@@ -5,7 +5,7 @@ import { CreateInstance } from "before-hook";
 import express from "express";
 import jwt_decode from "jwt-decode";
 import Joi from "joi";
-import { SubscriptionsDBLibInit } from "../db-lib";
+import { EventDBLibInit, SubscriptionsDBLibInit } from "../db-lib";
 import CognitoDecodeVerifyJWTInit from "../utils/cognito-decode-verify-jwt";
 
 // const { Op } = Sequelize;
@@ -19,13 +19,22 @@ import {
 /* eslint-disable-next-line no-unused-vars */
 import {
   Event,
+  EventUserQuestion,
   Session,
   Subscription,
   User,
-  UserSubscription
+  UserSubscription,
+  sequelize
 } from "../models";
 import { seedSubscription } from "../migrations";
 import { format_response } from "../utils/lambda";
+
+const { getQuestions } = EventDBLibInit({
+  Event,
+  EventUserQuestion,
+  User,
+  sequelize
+});
 
 const router = express.Router();
 
@@ -94,17 +103,7 @@ const getEventHandler = async (event, context) => {
     // const { event_id } = params;
     /* eslint-disable-next-line  no-unused-vars */
 
-    const list = await Event.findOne({
-      where: {
-        event_id
-      },
-      include: [
-        {
-          model: User,
-          as: "user"
-        }
-      ]
-    });
+    const list = await getQuestions(event_id);
 
     return context.json(format_response(list));
   } catch (e) {
@@ -137,7 +136,7 @@ const createEventHandler = async (event, context) => {
       console.log("error", v);
       throw Error(v && v.message);
     }
-    
+
     const found = await Event.findOne({ where: { url: body.url } });
     if (found) {
       throw Error(`link ${body.url} is not available`);
@@ -225,7 +224,52 @@ const patchEventHandler = async (event, context) => {
       }
     );
 
-    return context.json(format_response({ success: true }));
+    const list = await getQuestions(event_id);
+
+    return context.json(format_response(list));
+  } catch (e) {
+    return context.json(422, format_response(e));
+  }
+};
+
+let patchEventQuestion = async (event, context) => {
+  try {
+    const { event_id, event_question_id } = event.params;
+    const { user_id } = event.user;
+    const { body } = event;
+
+    const schema = Joi.object().keys({
+      archive: Joi.boolean().required(),
+      type: Joi.string()
+        .valid("archive")
+        .required(),
+      event_id: Joi.number().required(),
+      event_question_id: Joi.number().required()
+    });
+
+    const v = Joi.validate(
+      { event_id, event_question_id, type: body.type, archive: body.archive },
+      schema
+    );
+
+    if (v.error) {
+      console.log("error", v);
+      throw Error(v && v.message);
+    }
+    
+    await EventUserQuestion.update(
+      {
+        archived: body.archive === true,
+        user_id
+      },
+      {
+        where: { event_id, event_question_id }
+      }
+    );
+
+    const list = await getQuestions(event_id);
+
+    return context.json(format_response(list));
   } catch (e) {
     return context.json(422, format_response(e));
   }
@@ -387,6 +431,7 @@ const getEvent = withHook(getEventHandler);
 const getSubscriptionsList = withHook(getSubscriptionsListHandler);
 const createEvent = withHook(createEventHandler).use(ValidateAndGetUserInfo());
 const patchEvent = withHook(patchEventHandler).use(ValidateAndGetUserInfo());
+patchEventQuestion = withHook(patchEventQuestion).use(ValidateAndGetUserInfo());
 
 /* test = beforeHook(test).use(
   BaseMiddleware({
@@ -409,6 +454,10 @@ router.get("/getSubscriptions", getSubscriptionsList);
 
 router.post("/events", createEvent);
 router.patch("/events/:event_id", patchEvent);
+router.patch(
+  "/events/:event_id/question/:event_question_id",
+  patchEventQuestion
+);
 
 router.post("/migration", migration);
 

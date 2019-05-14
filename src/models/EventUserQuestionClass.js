@@ -24,6 +24,12 @@ export default ({ sequelize, Sequelize }) => {
         allowNull: false
       },
 
+      archived: {
+        type: Sequelize.BOOLEAN,
+        allowNull: false,
+        defaultValue: false
+      },
+
       // dynamic
       dynamic_name: {
         type: Sequelize.STRING(255)

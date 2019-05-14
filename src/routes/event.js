@@ -54,7 +54,11 @@ let fetchEventInfoLive = async (event, context) => {
       include: [
         {
           model: EventUserQuestion,
-          as: "questions"
+          as: "questions",
+          required: false,
+          where: {
+            archived: false
+          }
         }
       ],
 
