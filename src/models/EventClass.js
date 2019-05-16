@@ -1,4 +1,4 @@
-export default ({ sequelize, Sequelize }, { User }) => {
+export default ({ sequelize, Sequelize }) => {
   if (!sequelize || !Sequelize) {
     throw Error(
       `sequelize Sequelize are required.
@@ -69,14 +69,6 @@ export default ({ sequelize, Sequelize }, { User }) => {
       sequelize
     }
   );
-  
-  Event.belongsTo(User, {
-    as: 'user',
-    foreignKey: {
-      name: 'user_id',
-      allowNull: false
-    },
-  });
 
   return Event;
 };

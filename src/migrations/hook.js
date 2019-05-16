@@ -5,5 +5,12 @@ const migrationHookEventUserQuestion = async ({ sequelize } = {}) => {
   await sequelize.query(query);
 };
 
+const migrationHookEventUserPoll = async ({ sequelize } = {}) => {
+  const tableName = `"event_user_polls"`;
+  const tableColumnName = `event_id`;
+  const query = `ALTER TABLE ${tableName} ALTER COLUMN ${tableColumnName} SET NOT NULL;`;
+  await sequelize.query(query);
+};
+
 export default migrationHookEventUserQuestion;
-export { migrationHookEventUserQuestion };
+export { migrationHookEventUserPoll, migrationHookEventUserQuestion };

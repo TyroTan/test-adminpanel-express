@@ -19,6 +19,7 @@ import {
 /* eslint-disable-next-line no-unused-vars */
 import {
   Event,
+  EventUserPoll,
   EventUserQuestion,
   Session,
   Subscription,
@@ -28,9 +29,11 @@ import {
 } from "../models";
 import { seedSubscription } from "../migrations";
 import { format_response } from "../utils/lambda";
+// import { migrationHookEventUserPoll } from "../migrations/hook";
 
-const { getQuestions } = EventDBLibInit({
+const { getQuestionsAndPolls, getPolls, getQuestions } = EventDBLibInit({
   Event,
+  EventUserPoll,
   EventUserQuestion,
   User,
   sequelize
@@ -48,31 +51,35 @@ const subscriptionsDBLib = SubscriptionsDBLibInit({
   Subscription
 });
 
-/* eslint-disable-next-line no-unused-vars */
-const test = async (event, context) => {
-  try {
-    const data = await Subscription.findAll({
-      include: [
-        {
-          where: {
-            user_id: 1
-          },
-          attributes: ["user_id"],
-          required: false,
-          model: User,
-          through: {
-            attributes: []
-          },
-          as: "user"
-        }
-      ]
-    });
+const getValidationSchemaPoll = keys =>
+  Joi.object().keys({
+    user_id: Joi.number().required(),
+    question: Joi.string().required(),
+    event_id: Joi.number().required(),
+    data: Joi.string().required(),
+    dynamic_field_0: Joi.string().allow(""),
+    dynamic_field_1: Joi.string().allow(""),
+    dynamic_field_2: Joi.string().allow(""),
+    dynamic_field_3: Joi.string().allow(""),
+    dynamic_field_4: Joi.string().allow(""),
+    dynamic_field_5: Joi.string().allow(""),
+    dynamic_field_6: Joi.string().allow(""),
+    dynamic_field_7: Joi.string().allow(""),
+    dynamic_field_8: Joi.string().allow(""),
+    dynamic_field_9: Joi.string().allow(""),
+    ...keys
+  });
 
-    return context.json(data);
-  } catch (e) {
-    return context.json(format_response(e));
-  }
-};
+/* eslint-disable-next-line no-unused-vars */
+// const test = async (event, context) => {
+//   try {
+//     const data = await getQuestionsAndPolls(3);
+//
+//     return context.json(format_response(data));
+//   } catch (e) {
+//     return context.json(format_response(e));
+//   }
+// };
 
 /* eslint-disable-next-line no-unused-vars */
 const getEventsListHandler = async (event, context) => {
@@ -103,7 +110,7 @@ const getEventHandler = async (event, context) => {
     // const { event_id } = params;
     /* eslint-disable-next-line  no-unused-vars */
 
-    const list = await getQuestions(event_id);
+    const list = await getQuestionsAndPolls(event_id);
 
     return context.json(format_response(list));
   } catch (e) {
@@ -232,6 +239,116 @@ const patchEventHandler = async (event, context) => {
   }
 };
 
+let createEventPoll = async (event, context) => {
+  try {
+    const { event_id } = event.params;
+    const { user_id } = event.user;
+    const { body } = event;
+
+    if (
+      Object.keys(body).reduce((acc, cur) => {
+        let sum = acc;
+        if (cur.indexOf(`dynamic_field_`) > -1 && body[cur]) {
+          sum += 1;
+        }
+
+        return sum;
+      }, 0) < 2
+    ) {
+      return context.json(
+        422,
+        format_response(Error("At least two options are required."))
+      );
+    }
+
+    const payload = {
+      user_id,
+      event_id,
+      question: body.question,
+      data: "dummy",
+      dynamic_field_0: body.dynamic_field_0,
+      dynamic_field_1: body.dynamic_field_1,
+      dynamic_field_2: body.dynamic_field_2,
+      dynamic_field_3: body.dynamic_field_3,
+      dynamic_field_4: body.dynamic_field_4,
+      dynamic_field_5: body.dynamic_field_5,
+      dynamic_field_6: body.dynamic_field_6,
+      dynamic_field_7: body.dynamic_field_7,
+      dynamic_field_8: body.dynamic_field_8,
+      dynamic_field_9: body.dynamic_field_9
+    };
+
+    const schema = getValidationSchemaPoll();
+
+    const v = Joi.validate(payload, schema);
+
+    if (v.error) {
+      console.log("error", v);
+      throw Error(v && v.message);
+    }
+
+    await EventUserPoll.create(payload);
+
+    const list = await getPolls(event_id);
+
+    return context.json(format_response(list));
+  } catch (e) {
+    return context.json(422, format_response(e));
+  }
+};
+
+let patchEventPoll = async (event, context) => {
+  try {
+    const { body, params } = event;
+    const { event_id, event_poll_id } = params;
+    const { user_id } = event.user;
+
+    const payload = {
+      user_id,
+      event_id,
+      event_poll_id,
+      question: body.question,
+      data: "dummy",
+      dynamic_field_0: body.dynamic_field_0,
+      dynamic_field_1: body.dynamic_field_1,
+      dynamic_field_2: body.dynamic_field_2,
+      dynamic_field_3: body.dynamic_field_3,
+      dynamic_field_4: body.dynamic_field_4,
+      dynamic_field_5: body.dynamic_field_5,
+      dynamic_field_6: body.dynamic_field_6,
+      dynamic_field_7: body.dynamic_field_7,
+      dynamic_field_8: body.dynamic_field_8,
+      dynamic_field_9: body.dynamic_field_9
+    };
+
+    const schema = getValidationSchemaPoll({
+      event_poll_id: Joi.number().required()
+    });
+
+    const v = Joi.validate(payload, schema);
+
+    if (v.error) {
+      console.log("error", v);
+      throw Error(v && v.message);
+    }
+
+    delete payload.event_id;
+    delete payload.event_poll_id;
+    await EventUserPoll.update(
+      { ...payload },
+      {
+        where: { event_id, event_poll_id }
+      }
+    );
+
+    const list = await getPolls(event_id);
+
+    return context.json(format_response(list));
+  } catch (e) {
+    return context.json(422, format_response(e));
+  }
+};
+
 let patchEventQuestion = async (event, context) => {
   try {
     const { event_id, event_question_id } = event.params;
@@ -256,7 +373,7 @@ let patchEventQuestion = async (event, context) => {
       console.log("error", v);
       throw Error(v && v.message);
     }
-    
+
     await EventUserQuestion.update(
       {
         archived: body.archive === true,
@@ -432,6 +549,8 @@ const getSubscriptionsList = withHook(getSubscriptionsListHandler);
 const createEvent = withHook(createEventHandler).use(ValidateAndGetUserInfo());
 const patchEvent = withHook(patchEventHandler).use(ValidateAndGetUserInfo());
 patchEventQuestion = withHook(patchEventQuestion).use(ValidateAndGetUserInfo());
+patchEventPoll = withHook(patchEventPoll).use(ValidateAndGetUserInfo());
+createEventPoll = withHook(createEventPoll).use(ValidateAndGetUserInfo());
 
 /* test = beforeHook(test).use(
   BaseMiddleware({
@@ -444,20 +563,23 @@ patchEventQuestion = withHook(patchEventQuestion).use(ValidateAndGetUserInfo());
   })
 ); */
 
-router.get("/test", test);
-router.get("/getEvents", getEventsList);
+// router.get("/test", test);
+router.get("/events", getEventsList);
 router.get("/event/:event_id", getEvent);
 
 router.get("/getUserSubscriptions", getUserSubscriptions);
 router.get("/getUsers", getUsersList);
 router.get("/getSubscriptions", getSubscriptionsList);
 
-router.post("/events", createEvent);
-router.patch("/events/:event_id", patchEvent);
+router.post("/event", createEvent);
+router.post("/event/:event_id/poll", createEventPoll);
+
+router.patch("/event/:event_id", patchEvent);
 router.patch(
-  "/events/:event_id/question/:event_question_id",
+  "/event/:event_id/question/:event_question_id",
   patchEventQuestion
 );
+router.patch("/event/:event_id/poll/:event_poll_id", patchEventPoll);
 
 router.post("/migration", migration);
 

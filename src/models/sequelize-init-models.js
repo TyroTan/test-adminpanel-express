@@ -4,6 +4,7 @@ import pg from "pg";
 import Sequelize from "sequelize";
 
 import EventClass from "./EventClass";
+import EventUserPollClass from "./EventUserPollClass";
 import EventUserQuestionClass from "./EventUserQuestionClass";
 import SessionClass from "./SessionClass";
 import SubscriptionClass from "./SubscriptionClass";
@@ -25,10 +26,10 @@ const sequelize = new Sequelize(
     dialect: "postgres",
     host: `${PG_HOST}`,
     port: `${PG_PORT}`,
-    // logging: false,
-    logging: (rawQuery) => {
-      console.log("loggger23123", rawQuery)
-    },
+    logging: false,
+    // logging: rawQuery => {
+    //   console.log("loggger23123", rawQuery);
+    // },
     define: {
       charset: "utf8",
       collate: "utf8_general_ci"
@@ -68,6 +69,10 @@ const Event = EventClass(
   },
   { User }
 );
+const EventUserPoll = EventUserPollClass({
+  sequelize,
+  Sequelize
+});
 const EventUserQuestion = EventUserQuestionClass({
   sequelize,
   Sequelize
@@ -77,23 +82,37 @@ const UserSubscription = UserSubscriptionClass({
   Sequelize
 });
 
+Event.belongsTo(User, {
+  as: "user",
+  foreignKey: {
+    name: "user_id",
+    allowNull: false
+  }
+});
+
 Event.hasMany(EventUserQuestion, {
   as: "questions",
   foreignKey: "event_id"
 });
 
+Event.hasMany(EventUserPoll, {
+  as: "polls",
+  foreignKey: "event_id"
+});
 Subscription.belongsToMany(User, {
   through: UserSubscription,
   as: "user",
   foreignKey: "subscription_id",
   allowNull: false
 });
+
 User.belongsToMany(Subscription, {
   through: UserSubscription,
   as: "user_subscription",
   foreignKey: "user_id",
   allowNull: false
 });
+
 // UserSubscription.belongsTo(models.Role, { as: "role", foreignKey: "roleId" });
 UserSubscription.belongsTo(User, { as: "user", foreignKey: "user_id" });
 UserSubscription.belongsTo(Subscription, {
@@ -117,8 +136,24 @@ EventUserQuestion.belongsTo(User, {
   }
 });
 
+EventUserPoll.belongsTo(Event, {
+  as: "event",
+  foreignKey: {
+    name: "event_id",
+    allowNull: false
+  }
+});
+EventUserPoll.belongsTo(User, {
+  as: "user",
+  foreignKey: {
+    name: "user_id",
+    allowNull: false
+  }
+});
+
 export {
   Event,
+  EventUserPoll,
   EventUserQuestion,
   Session,
   Subscription,
