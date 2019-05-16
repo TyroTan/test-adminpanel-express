@@ -1,6 +1,7 @@
 export default ({
   Event,
   EventUserPoll,
+  EventUserPollAnswer,
   EventUserQuestion,
   User,
   sequelize
@@ -8,6 +9,7 @@ export default ({
   if (
     typeof Event === "undefined" ||
     typeof EventUserPoll === "undefined" ||
+    typeof EventUserPollAnswer === "undefined" ||
     typeof EventUserQuestion === "undefined" ||
     typeof User === "undefined"
   ) {
@@ -16,6 +18,7 @@ export default ({
         ` type is ${typeof sequelize}` +
         ` type is ${typeof User}` +
         ` type is ${typeof EventUserPoll}` +
+        ` type is ${typeof EventUserPollAnswer}` +
         ` type is ${typeof EventUserQuestion}` +
         ` type is ${typeof User}`
     );
@@ -104,5 +107,24 @@ export default ({
     });
   };
 
-  return { getPolls, getQuestionsAndPolls, getQuestions };
+  const getPollAnswers = ({ userId, pollId }) => {
+    return EventUserPollAnswer.findOne({
+      where: {
+        user_id: userId,
+        poll_id: pollId
+      },
+      include: [
+        {
+          model: User,
+          as: "user"
+        },
+        {
+          model: EventUserPoll,
+          as: "polls"
+        }
+      ]
+    });
+  };
+
+  return { getPolls, getPollAnswers, getQuestionsAndPolls, getQuestions };
 };

@@ -20,6 +20,7 @@ import {
 import {
   Event,
   EventUserPoll,
+  EventUserPollAnswer,
   EventUserQuestion,
   Session,
   Subscription,
@@ -34,6 +35,7 @@ import { format_response } from "../utils/lambda";
 const { getQuestionsAndPolls, getPolls, getQuestions } = EventDBLibInit({
   Event,
   EventUserPoll,
+  EventUserPollAnswer,
   EventUserQuestion,
   User,
   sequelize

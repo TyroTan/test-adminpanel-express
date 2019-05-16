@@ -5,6 +5,7 @@ import Sequelize from "sequelize";
 
 import EventClass from "./EventClass";
 import EventUserPollClass from "./EventUserPollClass";
+import EventUserPollAnswerClass from "./EventUserPollAnswerClass";
 import EventUserQuestionClass from "./EventUserQuestionClass";
 import SessionClass from "./SessionClass";
 import SubscriptionClass from "./SubscriptionClass";
@@ -73,6 +74,10 @@ const EventUserPoll = EventUserPollClass({
   sequelize,
   Sequelize
 });
+const EventUserPollAnswer = EventUserPollAnswerClass({
+  sequelize,
+  Sequelize
+})
 const EventUserQuestion = EventUserQuestionClass({
   sequelize,
   Sequelize
@@ -151,9 +156,26 @@ EventUserPoll.belongsTo(User, {
   }
 });
 
+EventUserPollAnswer.belongsTo(EventUserPoll, {
+  as: "poll",
+  foreignKey: {
+    name: "poll_id",
+    allowNull: false
+  }
+});
+
+EventUserPollAnswer.belongsTo(User, {
+  as: "user",
+  foreignKey: {
+    name: "user_id",
+    allowNull: false
+  }
+});
+
 export {
   Event,
   EventUserPoll,
+  EventUserPollAnswer,
   EventUserQuestion,
   Session,
   Subscription,

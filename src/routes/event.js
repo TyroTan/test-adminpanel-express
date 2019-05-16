@@ -5,6 +5,7 @@ import { CreateInstance } from "before-hook";
 import express from "express";
 
 import jwt_decode from "jwt-decode";
+import Joi from "joi";
 
 import * as firabseAdmin from "firebase-admin";
 import firebaseConfig from "../config/firebase.config";
@@ -14,12 +15,29 @@ import { AuthMiddleware, ValidateAndGetUserInfo } from "../custom-middleware";
 import CognitoDecodeVerifyJWTInit from "../utils/cognito-decode-verify-jwt";
 
 /* eslint-disable-next-line no-unused-vars */
-import { Event, EventUserQuestion, sequelize } from "../models";
+import {
+  Event,
+  EventUserPoll,
+  EventUserPollAnswer,
+  EventUserQuestion,
+  User,
+  sequelize
+} from "../models";
 import { format_response } from "../utils/lambda";
 // import moment from "moment";
 
 /* eslint-disable-next-line no-unused-vars */
-import { migrationHookEventUserQuestion } from "../migrations/hook";
+import { migrationHookEventUserPollAnswer } from "../migrations/hook";
+import { EventDBLibInit } from "../db-lib";
+
+const { getPollAnswers } = EventDBLibInit({
+  Event,
+  EventUserPoll,
+  EventUserPollAnswer,
+  EventUserQuestion,
+  User,
+  sequelize
+});
 
 const router = express.Router();
 
@@ -35,6 +53,10 @@ firabseAdmin.initializeApp({
 /* eslint-disable-next-line no-unused-vars */
 let fetchEventInfoLive = async (event, context) => {
   try {
+    // TODO: comment me
+    // await EventUserPollAnswer.sync({ force: true });
+    // await migrationHookEventUserPollAnswer({ sequelize });
+
     const { params = {} } = event;
     const { event_id_or_unique_link } = params;
     const isLinkMode = event.query && event.query.isLinkMode === "true";
@@ -59,11 +81,16 @@ let fetchEventInfoLive = async (event, context) => {
           where: {
             archived: false
           }
+        },
+        {
+          model: EventUserPoll,
+          as: "polls"
         }
       ],
-
-      // TODO: must be cleaner to use order: [["createdAt", "DESC"]] but not working smh
-      order: sequelize.literal('"questions.createdAt" DESC')
+      order: [
+        [sequelize.literal('"questions.createdAt" DESC')],
+        [sequelize.literal('"polls.createdAt" DESC')]
+      ]
     });
 
     return context.json(format_response(list));
@@ -94,7 +121,7 @@ let createEventQuestion = async (event, context) => {
     });
 
     const dbref = firabseAdmin.database().ref("messager_event_questions");
-    dbref.once("value", function(snapshot) {
+    dbref.once("value", snapshot => {
       const current = JSON.parse(snapshot.val());
       const found = current.find(item => item.event_id === event_id);
       if (found === undefined) {
@@ -108,6 +135,62 @@ let createEventQuestion = async (event, context) => {
     });
 
     return context.json(format_response({ success: true }));
+  } catch (e) {
+    return context.json(422, format_response(e));
+  }
+};
+
+const getValidationSchemaPollAnswer = keys =>
+  Joi.object().keys({
+    user_id: Joi.number().required(),
+    poll_id: Joi.string().required(),
+    selected_key: Joi.string().required(),
+    selected_value: Joi.string().required(),
+    ...keys
+  });
+
+let saveEventPollAnswer = async (event, context) => {
+  try {
+    const { body, params, user } = event;
+    const { user_id } = user;
+    const { event_poll_id } = params;
+
+    const payload = {
+      user_id,
+      poll_id: event_poll_id,
+      ...body
+    };
+
+    const v = Joi.validate(payload, getValidationSchemaPollAnswer());
+
+    if (v.error) {
+      console.log("error", v);
+      throw Error(v && v.message);
+    }
+
+    // newPollAnswer
+
+    await EventUserPollAnswer.create({
+      ...payload
+    });
+
+    const list = getPollAnswers({ userId: user_id, pollId: event_poll_id });
+
+    /* const dbref = firabseAdmin.database().ref("messager_event_questions");
+    dbref.once("value", snapshot => {
+      const current = JSON.parse(snapshot.val());
+      const found = current.find(item => item.event_id === event_id);
+      if (found === undefined) {
+        current.push({
+          event_id: parseInt(event_id, 10),
+          event_question_id: newQuestion.event_question_id
+        });
+
+        dbref.set(JSON.stringify(current));
+      }
+    }); */
+
+    return context.json(format_response(list));
   } catch (e) {
     return context.json(422, format_response(e));
   }
@@ -145,13 +228,16 @@ const withHook = (...handler) =>
     })
   );
 
-[createEventQuestion, fetchEventInfoLive] = withHook([
+[createEventQuestion, fetchEventInfoLive, saveEventPollAnswer] = withHook([
   createEventQuestion,
-  fetchEventInfoLive
+  fetchEventInfoLive,
+  saveEventPollAnswer
 ]);
 createEventQuestion = createEventQuestion.use(ValidateAndGetUserInfo());
+saveEventPollAnswer = saveEventPollAnswer.use(ValidateAndGetUserInfo());
 
 router.post("/:event_id/question", createEventQuestion);
 router.get("/:event_id_or_unique_link", fetchEventInfoLive);
+router.post("/:event_id/poll/:event_poll_id/answer", saveEventPollAnswer);
 
 export default router;

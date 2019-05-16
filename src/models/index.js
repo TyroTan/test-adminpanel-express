@@ -1,6 +1,7 @@
 import {
   Event,
   EventUserPoll,
+  EventUserPollAnswer,
   EventUserQuestion,
   Session,
   Subscription,
@@ -13,6 +14,7 @@ import {
 export {
   Event,
   EventUserPoll,
+  EventUserPollAnswer,
   EventUserQuestion,
   Session,
   Subscription,
