@@ -19,17 +19,21 @@ const migrationHookEventUserPollAnswer = async ({ sequelize } = {}) => {
   await sequelize.query(query);
 };
 
+// event_poll_id INTEGER NOT NULL REFERENCES "event_user_polls"(event_poll_id),
+// event_id INTEGER NOT NULL REFERENCES "Events"(event_id),
+
 const migrationHookEventPollRunning = async ({ sequelize }) => {
   const createTableQuery = `CREATE TABLE IF NOT EXISTS event_poll_running (
-      event_poll_running_id INTEGER NOT NULL PRIMARY KEY,
-      event_poll_id INTEGER NOT NULL REFERENCES event_user_polls(event_poll_id),
+      event_poll_running_id serial NOT NULL PRIMARY KEY,
+      event_poll_id INTEGER NOT NULL REFERENCES "event_user_polls"(event_poll_id),
+      event_id INTEGER NOT NULL REFERENCES "Events"(event_id),
       is_running BOOLEAN NOT NULL
   );`;
 
-  // only one running poll per event_poll_id
+  // only one running poll per event_id
   const createConstraintQuery = `CREATE UNIQUE INDEX is_running_idx
-    ON event_poll_running (event_poll_id)
-    WHERE is_running ;
+    ON event_poll_running (event_id)
+    WHERE is_running;
     `;
 
   await sequelize.query(createTableQuery);

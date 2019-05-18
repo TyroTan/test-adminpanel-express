@@ -30,7 +30,7 @@
   "dependencies": {
     "aws-sdk": "^2.441.0",
     "aws-serverless-express": "^3.3.6",
-    "before-hook": "^0.3.2-alpha.0",
+    "before-hook": "^0.3.3-alpha.0",
     "cors": "^2.8.5",
     "express": "^4.16.4",
     "firebase-admin": "^7.3.0",

@@ -126,5 +126,17 @@ export default ({
     });
   };
 
-  return { getPolls, getPollAnswers, getQuestionsAndPolls, getQuestions };
+  const getEventPollRunning = eventId => {
+    if (!eventId) throw Error(`missing eventId. type is ${typeof eventId}`);
+
+    return sequelize.query(
+      "SELECT * FROM event_poll_running WHERE event_id = :event_id ",
+      {
+        replacements: { event_id: eventId },
+        type: sequelize.QueryTypes.SELECT
+      }
+    );
+  };
+
+  return { getEventPollRunning, getPolls, getPollAnswers, getQuestionsAndPolls, getQuestions };
 };

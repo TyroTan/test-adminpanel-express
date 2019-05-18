@@ -1,4 +1,5 @@
 /* eslint-disable camelcase */
+
 import { promisify } from "util";
 import moment from "moment";
 import { CreateInstance } from "before-hook";
@@ -30,9 +31,14 @@ import {
 } from "../models";
 import { seedSubscription } from "../migrations";
 import { format_response } from "../utils/lambda";
-// import { migrationHookEventUserPoll } from "../migrations/hook";
+import { migrationHookEventPollRunning } from "../migrations/hook";
 
-const { getQuestionsAndPolls, getPolls, getQuestions } = EventDBLibInit({
+const {
+  getEventPollRunning,
+  getQuestionsAndPolls,
+  getPolls,
+  getQuestions
+} = EventDBLibInit({
   Event,
   EventUserPoll,
   EventUserPollAnswer,
@@ -73,15 +79,17 @@ const getValidationSchemaPoll = keys =>
   });
 
 /* eslint-disable-next-line no-unused-vars */
-// const test = async (event, context) => {
-//   try {
-//     const data = await getQuestionsAndPolls(3);
-//
-//     return context.json(format_response(data));
-//   } catch (e) {
-//     return context.json(format_response(e));
-//   }
-// };
+const test = async (event, context) => {
+  try {
+    const data = {};
+    // data.a = await migrationHookEventUserPollAnswer({ sequelize });
+    data.b = await migrationHookEventPollRunning({ sequelize });
+
+    return context.json(format_response(data));
+  } catch (e) {
+    return context.json(format_response(e));
+  }
+};
 
 /* eslint-disable-next-line no-unused-vars */
 const getEventsListHandler = async (event, context) => {
@@ -112,16 +120,18 @@ const getEventHandler = async (event, context) => {
     // const { event_id } = params;
     /* eslint-disable-next-line  no-unused-vars */
 
-    const list = await getQuestionsAndPolls(event_id);
+    const eventDetails = {};
+    eventDetails.event = await getQuestionsAndPolls(event_id);
+    eventDetails.eventPollRunning = await getEventPollRunning(event_id);
 
-    return context.json(format_response(list));
+    return context.json(format_response(eventDetails));
   } catch (e) {
     return context.json(format_response(e));
   }
 };
 
 /* eslint-disable-next-line no-unused-vars */
-const createEventHandler = async (event, context) => {
+let createEvent = async (event, context) => {
   try {
     const { user_id } = event.user;
     const { body } = event;
@@ -180,7 +190,7 @@ const createEventHandler = async (event, context) => {
 };
 
 /* eslint-disable-next-line no-unused-vars */
-const patchEventHandler = async (event, context) => {
+let patchEvent = async (event, context) => {
   try {
     const { event_id } = event.params;
     const { user_id } = event.user;
@@ -346,6 +356,80 @@ let patchEventPoll = async (event, context) => {
     const list = await getPolls(event_id);
 
     return context.json(format_response(list));
+  } catch (e) {
+    return context.json(422, format_response(e));
+  }
+};
+
+let startStopEventPoll = async (event, context) => {
+  try {
+    const { params } = event;
+    const { event_id, event_poll_id, type } = params;
+
+    const payload = {
+      type,
+      event_id,
+      event_poll_id
+    };
+
+    const schema = Joi.object().keys({
+      type: Joi.string().valid("start", "stop"),
+      event_id: Joi.number().required(),
+      event_poll_id: Joi.number().required()
+    });
+
+    const v = Joi.validate(payload, schema);
+
+    if (v.error) {
+      console.log("error", v);
+      throw Error(v && v.message);
+    }
+
+    const found = await sequelize.query(
+      "SELECT COUNT (*) FROM event_poll_running WHERE event_id = :event_id ",
+      {
+        replacements: { event_id: payload.event_id },
+        type: sequelize.QueryTypes.SELECT
+      }
+    );
+
+    if (found && found[0] && !!parseInt(found[0].count, 10)) {
+      if (type === "start") {
+        return context
+          .status(200)
+          .json({ success: false, msg: `Only one poll can be started at a time.` });
+      }
+    } else if (type === "stop") {
+      return context.status(200).json({ success: false, msg: `Poll wasn't started.` });
+    }
+
+    const condition = {
+      event_id: payload.event_id,
+      event_poll_id: payload.event_poll_id
+    };
+
+    if (payload.type === "start") {
+      await sequelize.query(
+        `INSERT INTO event_poll_running (event_poll_id, event_id, is_running)
+        VALUES (:event_poll_id, :event_id,true) `,
+        {
+          replacements: condition,
+          type: sequelize.QueryTypes.INSERT
+        }
+      );
+    } else {
+      await sequelize.query(
+        `DELETE FROM event_poll_running
+        WHERE event_poll_id = :event_poll_id
+        AND event_id = :event_id;`,
+        {
+          replacements: condition,
+          type: sequelize.QueryTypes.DELETE
+        }
+      );
+    }
+
+    return context.json(format_response({ success: true }));
   } catch (e) {
     return context.json(422, format_response(e));
   }
@@ -525,6 +609,21 @@ const withHook = handler =>
     })
   );
 
+const withHookArray = (...arrs) => {
+  if (!Array.isArray(...arrs)) {
+    throw Error(
+      `withHookArray argument must be an array. "${typeof arrs}" given.`
+    );
+  }
+
+  return beforeHook.getNew(...arrs).use(
+    AuthMiddleware({
+      promisify,
+      cognitoJWTDecodeHandler: UNSAFE_BUT_FAST_handler
+    })
+  );
+};
+
 const migration = withHook(migrationHandler).use(
   BaseMiddleware({
     handler: ({ getParams, reply }) => {
@@ -548,11 +647,22 @@ const getUsersList = withHook(getUsersListHandler);
 const getEventsList = withHook(getEventsListHandler);
 const getEvent = withHook(getEventHandler);
 const getSubscriptionsList = withHook(getSubscriptionsListHandler);
-const createEvent = withHook(createEventHandler).use(ValidateAndGetUserInfo());
-const patchEvent = withHook(patchEventHandler).use(ValidateAndGetUserInfo());
-patchEventQuestion = withHook(patchEventQuestion).use(ValidateAndGetUserInfo());
-patchEventPoll = withHook(patchEventPoll).use(ValidateAndGetUserInfo());
-createEventPoll = withHook(createEventPoll).use(ValidateAndGetUserInfo());
+
+[
+  createEvent,
+  createEventPoll,
+  patchEvent,
+  patchEventPoll,
+  patchEventQuestion,
+  startStopEventPoll
+] = withHookArray([
+  createEvent,
+  createEventPoll,
+  patchEvent,
+  patchEventPoll,
+  patchEventQuestion,
+  startStopEventPoll
+]).use(ValidateAndGetUserInfo());
 
 /* test = beforeHook(test).use(
   BaseMiddleware({
@@ -565,7 +675,7 @@ createEventPoll = withHook(createEventPoll).use(ValidateAndGetUserInfo());
   })
 ); */
 
-// router.get("/test", test);
+router.get("/test", test);
 router.get("/events", getEventsList);
 router.get("/event/:event_id", getEvent);
 
@@ -582,6 +692,7 @@ router.patch(
   patchEventQuestion
 );
 router.patch("/event/:event_id/poll/:event_poll_id", patchEventPoll);
+router.post("/event/:event_id/poll/:event_poll_id/:type", startStopEventPoll);
 
 router.post("/migration", migration);
 

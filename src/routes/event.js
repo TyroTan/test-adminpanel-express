@@ -92,6 +92,7 @@ let fetchEventInfoLive = async (event, context) => {
         [sequelize.literal('"polls.createdAt" DESC')]
       ]
     });
+    
 
     return context.json(format_response(list));
   } catch (e) {

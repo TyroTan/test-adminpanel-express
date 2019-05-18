@@ -8,7 +8,7 @@ const format_response_json = (res, messageObj) => {
   const msg = format_response(messageObj);
   const status = msg && msg.statusCode ? msg.statusCode : 500;
   /* eslint-disable-next-line no-use-before-define */
-  return res.status(status).json(format_response(messageObj));
+  return res.status(status).json(msg);
 };
 
 const format_response = (obj, message) => {
