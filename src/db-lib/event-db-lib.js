@@ -118,10 +118,10 @@ export default ({
           model: User,
           as: "user"
         },
-        {
-          model: EventUserPoll,
-          as: "polls"
-        }
+        // {
+        //   model: EventUserPoll,
+        //   as: "polls"
+        // }
       ]
     });
   };
@@ -130,7 +130,10 @@ export default ({
     if (!eventId) throw Error(`missing eventId. type is ${typeof eventId}`);
 
     return sequelize.query(
-      "SELECT * FROM event_poll_running WHERE event_id = :event_id ",
+      `SELECT event_poll.* FROM event_poll_running as running
+      LEFT JOIN event_user_polls as event_poll
+      ON event_poll.event_poll_id = running.event_poll_id
+      WHERE running.event_id = :event_id`,
       {
         replacements: { event_id: eventId },
         type: sequelize.QueryTypes.SELECT
@@ -138,5 +141,11 @@ export default ({
     );
   };
 
-  return { getEventPollRunning, getPolls, getPollAnswers, getQuestionsAndPolls, getQuestions };
+  return {
+    getEventPollRunning,
+    getPolls,
+    getPollAnswers,
+    getQuestionsAndPolls,
+    getQuestions
+  };
 };

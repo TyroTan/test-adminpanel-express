@@ -30,7 +30,7 @@ import { format_response } from "../utils/lambda";
 import { migrationHookEventUserPollAnswer } from "../migrations/hook";
 import { EventDBLibInit } from "../db-lib";
 
-const { getPollAnswers } = EventDBLibInit({
+const { getEventPollRunning, getPollAnswers } = EventDBLibInit({
   Event,
   EventUserPoll,
   EventUserPollAnswer,
@@ -61,8 +61,6 @@ let fetchEventInfoLive = async (event, context) => {
     const { event_id_or_unique_link } = params;
     const isLinkMode = event.query && event.query.isLinkMode === "true";
 
-    /* eslint-disable-next-line  no-unused-vars */
-
     const findCondition = isLinkMode
       ? {
           url: event_id_or_unique_link
@@ -71,7 +69,8 @@ let fetchEventInfoLive = async (event, context) => {
           event_id: event_id_or_unique_link
         };
 
-    const list = await Event.findOne({
+    const res = {};
+    res.event = await Event.findOne({
       where: findCondition,
       include: [
         {
@@ -92,9 +91,20 @@ let fetchEventInfoLive = async (event, context) => {
         [sequelize.literal('"polls.createdAt" DESC')]
       ]
     });
-    
 
-    return context.json(format_response(list));
+    res.eventPollRunning = await getEventPollRunning(res.event.event_id);
+    if (res.eventPollRunning.length && res.eventPollRunning[0].event_poll_id) {
+      res.eventPollResultIfAnswered = await EventUserPollAnswer.findAll({
+        where: { poll_id: res.eventPollRunning[0].event_poll_id },
+        attributes: [
+          "selected_key",
+          [sequelize.fn("count", sequelize.col("selected_key")), "count"]
+        ],
+        group: ["selected_key"]
+      });
+    }
+
+    return context.json(format_response(res));
   } catch (e) {
     return context.json(422, format_response(e));
   }
