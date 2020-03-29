@@ -1,0 +1,36 @@
+{
+  "extends": [
+    "eslint:recommended",
+    "airbnb-base",
+    "plugin:@typescript-eslint/recommended",
+    "prettier/@typescript-eslint",
+    "plugin:prettier/recommended"
+  ],
+  "env": {
+    "es6": true,
+    "node": true
+  },
+  "settings": {
+    "import/resolver": {
+      "node": {
+        "extensions": [".js", ".jsx", ".ts", ".tsx"]
+      }
+    }
+  },
+  "parser": "@typescript-eslint/parser",
+  "plugins": ["@typescript-eslint", "prettier"],
+  "overrides": [
+    { "files": ["./src/**/*.{ts,js}"], "excludedFiles": "./src/**/*.{d.ts}" }
+  ],
+  "rules": {
+    "import/no-commonjs": "error",
+    "@typescript-eslint/camelcase": "off",
+    "prettier/prettier": ["error", { "singleQuote": true }],
+    "@typescript-eslint/explicit-function-return-type": [
+      "error",
+      {
+        "allowTypedFunctionExpressions": true
+      }
+    ]
+  }
+}
