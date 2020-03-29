@@ -1,8 +1,8 @@
 import express, { Router } from 'express';
-
 // eslint-disable-next-line import/first
 // import { User } from './src/db/model';
-import { userRoutes } from './src/routes';
+import bodyParser from 'body-parser';
+import { userRoutes, authRoutes } from './src/routes';
 
 const app = express();
 
@@ -11,7 +11,13 @@ const app = express();
 
 const router = Router({ strict: true });
 
+// middlewares
+router.use(bodyParser.urlencoded({ extended: false }));
+router.use(bodyParser.json());
+
+// controller routes
 router.use('/user', userRoutes);
+router.use('/auth', authRoutes);
 
 app.use(router);
 

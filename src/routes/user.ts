@@ -1,19 +1,8 @@
-import { Router, Response } from 'express';
-import { User } from '../db/models';
+import { Router } from 'express';
+import userController from '../controllers/userController';
 
 const userRoutes = Router({ strict: true });
 
-userRoutes.get(
-  '/',
-  async (req, res): Promise<Response> => {
-    try {
-      const users = await User.findAll();
-      return res.json({ msg: 'user rout!', data: users });
-    } catch (e) {
-      console.log('users/ e', e);
-      return res.status(500).send('Something went wrong!');
-    }
-  },
-);
+userRoutes.get('/', userController.get);
 
 export default userRoutes;
