@@ -13,8 +13,7 @@ Object.keys(env && env.parsed ? env.parsed : {}).forEach((variable) => {
   const val = (env.parsed || {})[variable];
 
   process.env[variable] = val;
-  console.log('nowprocess.env[variable]', variable, process.env[variable]);
 });
 
 // Import the rest of our application.
-module.exports = require('./index.js');
+module.exports = require('./index');
