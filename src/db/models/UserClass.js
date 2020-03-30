@@ -23,11 +23,17 @@ export default ({ sequelize, Sequelize }, { Session } = {}) => {
       },
       email: {
         type: Sequelize.STRING(255),
+        unique: true,
         allowNull: false,
       },
       password: {
         type: Sequelize.STRING(255),
         allowNull: false,
+      },
+      is_admin: {
+        type: Sequelize.BOOLEAN,
+        allowNull: false,
+        defaultValue: false,
       },
       is_active: {
         type: Sequelize.BOOLEAN,
