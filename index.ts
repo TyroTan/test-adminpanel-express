@@ -11,20 +11,20 @@ const app = express();
 
 const router = Router({ strict: true });
 
-const whitelist = ['http://localhost:3001', 'http://example2.com'];
-const corsOptions = {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  origin(origin: any, callback: any): void {
-    if (whitelist.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-};
+// const whitelist = ['http://localhost:3001', 'http://example2.com'];
+// const corsOptions = {
+//   // eslint-disable-next-line @typescript-eslint/no-explicit-any
+//   origin(origin: any, callback: any): void {
+//     if (whitelist.indexOf(origin) !== -1) {
+//       callback(null, true);
+//     } else {
+//       callback(new Error('Not allowed by CORS'));
+//     }
+//   },
+// };
 
 // middlewares
-app.use(cors(corsOptions));
+app.use(cors());
 
 router.use(bodyParser.urlencoded({ extended: false }));
 router.use(bodyParser.json());
