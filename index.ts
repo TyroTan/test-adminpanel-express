@@ -47,7 +47,7 @@ router.use(bodyParser.json());
 // controller routes
 router.use('/user', isAdminMiddleware, userRoutes);
 router.use('/auth', authRoutes);
-router.use('/quiz', isAdminMiddleware, quizRoutes);
+router.use('/quiz', quizRoutes);
 
 app.use(router);
 
