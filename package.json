@@ -4,6 +4,7 @@
   "description": "",
   "main": "server.js",
   "scripts": {
+    "startpm2": "ts-node --files server.js",
     "start": "nodemon",
     "lint-src-db": "eslint src/db/**/* && eslint src/db/*",
     "lint-src": "eslint src/*",
