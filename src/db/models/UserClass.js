@@ -26,6 +26,11 @@ export default ({ sequelize, Sequelize }, { Session } = {}) => {
         unique: true,
         allowNull: false,
       },
+      name: {
+        type: Sequelize.STRING(255),
+        defaultValue: '',
+        allowNull: false,
+      },
       password: {
         type: Sequelize.STRING(255),
         allowNull: false,

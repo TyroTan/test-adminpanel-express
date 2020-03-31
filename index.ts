@@ -1,9 +1,12 @@
 import express, { Router } from 'express';
 // eslint-disable-next-line import/first
 import bodyParser from 'body-parser';
+import jwtMiddleware from 'express-jwt';
 import cors from 'cors';
 // import { User } from './src/db/models';
 import { userRoutes, authRoutes, quizRoutes } from './src/routes';
+import { AUTH_SECRET } from './src/config';
+import { isAdminMiddleware } from './src/routes/authorizationHelper';
 
 const app = express();
 // migration commands - only execute if first time building the db
@@ -25,14 +28,26 @@ const router = Router({ strict: true });
 
 // middlewares
 app.use(cors());
+app.use(
+  jwtMiddleware({
+    secret: AUTH_SECRET,
+    credentialsRequired: false,
+    getToken: function fromHeaderOrQuerystring(req) {
+      if (req.headers.authorization?.length ?? 0 > 10) {
+        return req.headers.authorization;
+      }
+      return null;
+    },
+  }).unless({ path: ['/auth/login'] }),
+);
 
 router.use(bodyParser.urlencoded({ extended: false }));
 router.use(bodyParser.json());
 
 // controller routes
-router.use('/user', userRoutes);
+router.use('/user', isAdminMiddleware, userRoutes);
 router.use('/auth', authRoutes);
-router.use('/quiz', quizRoutes);
+router.use('/quiz', isAdminMiddleware, quizRoutes);
 
 app.use(router);
 

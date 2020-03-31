@@ -4,15 +4,6 @@ import jwt from 'jsonwebtoken';
 import { User } from '../db/models';
 import { AUTH_SECRET } from '../config';
 
-interface User {
-  user_id: string;
-  email: string;
-  is_admin: boolean;
-
-  password: string;
-  is_active: boolean;
-}
-
 type UserSession = Partial<User>;
 
 const userToUserSessionObject = (user: User): UserSession => {
@@ -38,6 +29,7 @@ const register: RequestHandler = async (req, res) => {
 
     const user = await User.create({
       email: req.body.email,
+      name: req.body?.name ?? '',
       password: hashedPassword,
     });
 
